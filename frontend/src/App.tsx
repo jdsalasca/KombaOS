@@ -27,6 +27,20 @@ function App() {
     stock: number;
   };
 
+  type MaterialStockThreshold = {
+    materialId: string;
+    minStock: number;
+    updatedAt: string;
+  };
+
+  type LowStockAlert = {
+    materialId: string;
+    name: string;
+    unit: string;
+    stock: number;
+    minStock: number;
+  };
+
   type LoadState =
     | { status: "idle" }
     | { status: "loading" }
@@ -41,6 +55,10 @@ function App() {
     selectedMaterialId: string | null;
     stock: MaterialStock | null;
     stockState: LoadState;
+    threshold: MaterialStockThreshold | null;
+    thresholdState: LoadState;
+    lowStockAlerts: LowStockAlert[];
+    lowStockAlertsState: LoadState;
   };
 
   type Action =
@@ -53,7 +71,13 @@ function App() {
     | { type: "movements/error"; message: string }
     | { type: "stock/loading" }
     | { type: "stock/loaded"; stock: MaterialStock }
-    | { type: "stock/error"; message: string };
+    | { type: "stock/error"; message: string }
+    | { type: "threshold/loading" }
+    | { type: "threshold/loaded"; threshold: MaterialStockThreshold | null }
+    | { type: "threshold/error"; message: string }
+    | { type: "alerts/loading" }
+    | { type: "alerts/loaded"; alerts: LowStockAlert[] }
+    | { type: "alerts/error"; message: string };
 
   const initialState: State = {
     materials: [],
@@ -63,6 +87,10 @@ function App() {
     selectedMaterialId: null,
     stock: null,
     stockState: { status: "idle" },
+    threshold: null,
+    thresholdState: { status: "idle" },
+    lowStockAlerts: [],
+    lowStockAlertsState: { status: "idle" },
   };
 
   function reducer(state: State, action: Action): State {
@@ -81,6 +109,8 @@ function App() {
           movementsState: { status: "idle" },
           stock: null,
           stockState: { status: "idle" },
+          threshold: null,
+          thresholdState: { status: "idle" },
         };
       case "movements/loading":
         return { ...state, movementsState: { status: "loading" } };
@@ -94,6 +124,18 @@ function App() {
         return { ...state, stock: action.stock, stockState: { status: "loaded" } };
       case "stock/error":
         return { ...state, stockState: { status: "error", message: action.message } };
+      case "threshold/loading":
+        return { ...state, thresholdState: { status: "loading" } };
+      case "threshold/loaded":
+        return { ...state, threshold: action.threshold, thresholdState: { status: "loaded" } };
+      case "threshold/error":
+        return { ...state, thresholdState: { status: "error", message: action.message } };
+      case "alerts/loading":
+        return { ...state, lowStockAlertsState: { status: "loading" } };
+      case "alerts/loaded":
+        return { ...state, lowStockAlerts: action.alerts, lowStockAlertsState: { status: "loaded" } };
+      case "alerts/error":
+        return { ...state, lowStockAlertsState: { status: "error", message: action.message } };
     }
   }
 
@@ -104,6 +146,7 @@ function App() {
   const [createMoveType, setCreateMoveType] = useState<InventoryMovementType>("IN");
   const [createMoveQty, setCreateMoveQty] = useState("1");
   const [createMoveReason, setCreateMoveReason] = useState("");
+  const [minStockInput, setMinStockInput] = useState("0");
   const selectedMaterial = useMemo(
     () => state.materials.find((m) => m.id === state.selectedMaterialId) ?? null,
     [state.materials, state.selectedMaterialId],
@@ -179,6 +222,38 @@ function App() {
     }
   }
 
+  async function loadThreshold(materialId: string) {
+    dispatch({ type: "threshold/loading" });
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/materials/${encodeURIComponent(materialId)}/threshold`, {
+        headers: { "content-type": "application/json" },
+      });
+      if (res.status === 404) {
+        dispatch({ type: "threshold/loaded", threshold: null });
+        setMinStockInput("0");
+        return;
+      }
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const threshold = (await res.json()) as MaterialStockThreshold;
+      dispatch({ type: "threshold/loaded", threshold });
+      setMinStockInput(String(threshold.minStock));
+    } catch (e) {
+      dispatch({ type: "threshold/error", message: e instanceof Error ? e.message : "Error" });
+    }
+  }
+
+  async function loadLowStockAlerts() {
+    dispatch({ type: "alerts/loading" });
+    try {
+      const alerts = await httpJson<LowStockAlert[]>("/api/inventory/alerts/low-stock");
+      dispatch({ type: "alerts/loaded", alerts });
+    } catch (e) {
+      dispatch({ type: "alerts/error", message: e instanceof Error ? e.message : "Error" });
+    }
+  }
+
   useEffect(() => {
     void loadMaterials();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -188,6 +263,8 @@ function App() {
     if (!state.selectedMaterialId) return;
     void loadMovements(state.selectedMaterialId);
     void loadStock(state.selectedMaterialId);
+    void loadThreshold(state.selectedMaterialId);
+    void loadLowStockAlerts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.selectedMaterialId]);
 
@@ -224,6 +301,30 @@ function App() {
     setCreateMoveReason("");
     await loadMovements(state.selectedMaterialId);
     await loadStock(state.selectedMaterialId);
+    await loadLowStockAlerts();
+  }
+
+  async function onSaveThreshold(e: React.FormEvent) {
+    e.preventDefault();
+    if (!state.selectedMaterialId) return;
+
+    const minStock = Number(minStockInput);
+    if (!Number.isFinite(minStock) || minStock < 0) return;
+
+    await httpJson<MaterialStockThreshold>(`/api/materials/${encodeURIComponent(state.selectedMaterialId)}/threshold`, {
+      method: "PUT",
+      body: JSON.stringify({ minStock }),
+    });
+
+    await loadThreshold(state.selectedMaterialId);
+    await loadLowStockAlerts();
+  }
+
+  async function onDeleteThreshold() {
+    if (!state.selectedMaterialId) return;
+    await httpJson<void>(`/api/materials/${encodeURIComponent(state.selectedMaterialId)}/threshold`, { method: "DELETE" });
+    await loadThreshold(state.selectedMaterialId);
+    await loadLowStockAlerts();
   }
 
   return (
@@ -279,6 +380,33 @@ function App() {
             {state.stockState.status === "error" && `Error: ${state.stockState.message}`}
             {state.stockState.status === "loaded" && state.stock ? state.stock.stock : state.stockState.status === "idle" ? "—" : ""}
           </div>
+
+          <div style={{ marginTop: 8 }}>
+            <strong>Alerta stock mínimo:</strong>{" "}
+            {state.lowStockAlertsState.status === "loading" && "Cargando..."}
+            {state.lowStockAlertsState.status === "error" && `Error: ${state.lowStockAlertsState.message}`}
+            {state.lowStockAlertsState.status === "loaded" && state.selectedMaterialId
+              ? state.lowStockAlerts.some((a) => a.materialId === state.selectedMaterialId)
+                ? "BAJO"
+                : "OK"
+              : "—"}
+          </div>
+
+          <h3>Stock mínimo</h3>
+          <form onSubmit={onSaveThreshold} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              aria-label="Stock mínimo"
+              value={minStockInput}
+              onChange={(e) => setMinStockInput(e.target.value)}
+              inputMode="decimal"
+            />
+            <button type="submit" disabled={!state.selectedMaterialId}>
+              Guardar umbral
+            </button>
+            <button type="button" onClick={onDeleteThreshold} disabled={!state.selectedMaterialId || !state.threshold}>
+              Eliminar umbral
+            </button>
+          </form>
 
           <h3>Registrar movimiento</h3>
           <form onSubmit={onCreateMovement} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

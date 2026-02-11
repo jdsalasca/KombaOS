@@ -113,6 +113,60 @@ paths:
                 $ref: '#/components/schemas/MaterialStock'
         '404':
           description: Not found
+  /api/materials/{materialId}/threshold:
+    get:
+      summary: Get material stock threshold
+      parameters:
+        - in: path
+          name: materialId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialStockThreshold'
+        '404':
+          description: Not found
+    put:
+      summary: Upsert material stock threshold
+      parameters:
+        - in: path
+          name: materialId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialStockThresholdUpsert'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialStockThreshold'
+        '400':
+          description: Bad request
+        '404':
+          description: Not found
+    delete:
+      summary: Delete material stock threshold
+      parameters:
+        - in: path
+          name: materialId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
   /api/inventory/movements:
     get:
       summary: List inventory movements
@@ -179,6 +233,18 @@ paths:
       responses:
         '204':
           description: No content
+  /api/inventory/alerts/low-stock:
+    get:
+      summary: List low stock alerts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LowStockAlert'
 components:
   schemas:
     Material:
@@ -209,6 +275,37 @@ components:
         materialId:
           type: string
         stock:
+          type: number
+    MaterialStockThreshold:
+      type: object
+      required: [materialId, minStock, updatedAt]
+      properties:
+        materialId:
+          type: string
+        minStock:
+          type: number
+        updatedAt:
+          type: string
+          format: date-time
+    MaterialStockThresholdUpsert:
+      type: object
+      required: [minStock]
+      properties:
+        minStock:
+          type: number
+    LowStockAlert:
+      type: object
+      required: [materialId, name, unit, stock, minStock]
+      properties:
+        materialId:
+          type: string
+        name:
+          type: string
+        unit:
+          type: string
+        stock:
+          type: number
+        minStock:
           type: number
     InventoryMovementType:
       type: string
