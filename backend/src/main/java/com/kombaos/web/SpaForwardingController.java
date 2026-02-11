@@ -8,8 +8,8 @@ public class SpaForwardingController {
 
     @RequestMapping(value = {
             "/",
-            "/{segment:^(?!api|actuator).*$}/{path:[^\\.]*}",
-            "/{segment:^(?!api|actuator).*$}/**/{path:[^\\.]*}"
+            "/{path:[^\\.]*}",
+            "/{path:[^\\.]*}/**"
     })
     public String forward() {
         return "forward:/index.html";
