@@ -1,42 +1,139 @@
-#root {
-  max-width: 1280px;
+.app {
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 16px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.app__title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.app__main {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
   }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.panel {
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.card {
-  padding: 2em;
+.muted {
+  opacity: 0.75;
 }
 
-.read-the-docs {
-  color: #888;
+.error {
+  color: #ff6b6b;
+}
+
+.formRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.formRow input,
+.formRow select {
+  min-width: 160px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+}
+
+.formRow button {
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.list__item {
+  margin: 0;
+}
+
+.listButton {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.listButton--active {
+  border-color: rgba(100, 108, 255, 0.7);
+}
+
+.listButton__title {
+  font-weight: 600;
+}
+
+.listButton__meta {
+  opacity: 0.75;
+}
+
+.kv {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.kv__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.kv__key {
+  opacity: 0.75;
+}
+
+.movement {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.movement__type {
+  font-weight: 700;
+}
+
+.movement__reason {
+  opacity: 0.75;
 }

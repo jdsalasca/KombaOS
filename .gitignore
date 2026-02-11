@@ -10,6 +10,9 @@ backend/src/main/resources/static/
 *.log
 *.tmp
 
+frontend/test-results/
+frontend/playwright-report/
+
 .idea/
 .vscode/
 *.iml

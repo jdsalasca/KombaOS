@@ -328,13 +328,16 @@ function App() {
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto", padding: 24 }}>
-      <h1>KombaOS</h1>
+    <div className="app">
+      <header className="app__header">
+        <h1 className="app__title">KombaOS</h1>
+      </header>
 
-      <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "start" }}>
-        <div>
-          <h2>Materiales</h2>
-          <form onSubmit={onCreateMaterial} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <main className="app__main">
+        <section className="grid">
+          <div className="panel">
+            <h2>Materiales</h2>
+            <form onSubmit={onCreateMaterial} className="formRow">
             <input
               aria-label="Nombre material"
               placeholder="Nombre"
@@ -350,100 +353,112 @@ function App() {
             <button type="submit">Crear</button>
           </form>
 
-          {state.materialsState.status === "loading" && <p>Cargando...</p>}
-          {state.materialsState.status === "error" && <p>Error: {state.materialsState.message}</p>}
+            {state.materialsState.status === "loading" && <p className="muted">Cargando...</p>}
+            {state.materialsState.status === "error" && <p className="error">Error: {state.materialsState.message}</p>}
 
-          <ul>
-            {state.materials.map((m) => (
-              <li key={m.id}>
-                <button
-                  type="button"
-                  onClick={() => dispatch({ type: "material/select", materialId: m.id })}
-                  style={{
-                    fontWeight: m.id === state.selectedMaterialId ? "bold" : "normal",
-                  }}
-                >
-                  {m.name} ({m.unit})
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div>
-          <h2>Inventario</h2>
-          <p>Material seleccionado: {selectedMaterial ? `${selectedMaterial.name} (${selectedMaterial.unit})` : "—"}</p>
-
-          <div>
-            <strong>Stock:</strong>{" "}
-            {state.stockState.status === "loading" && "Cargando..."}
-            {state.stockState.status === "error" && `Error: ${state.stockState.message}`}
-            {state.stockState.status === "loaded" && state.stock ? state.stock.stock : state.stockState.status === "idle" ? "—" : ""}
+            <ul className="list">
+              {state.materials.map((m) => (
+                <li key={m.id} className="list__item">
+                  <button
+                    type="button"
+                    onClick={() => dispatch({ type: "material/select", materialId: m.id })}
+                    className={m.id === state.selectedMaterialId ? "listButton listButton--active" : "listButton"}
+                  >
+                    <span className="listButton__title">{m.name}</span>
+                    <span className="listButton__meta">{m.unit}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div style={{ marginTop: 8 }}>
-            <strong>Alerta stock mínimo:</strong>{" "}
-            {state.lowStockAlertsState.status === "loading" && "Cargando..."}
-            {state.lowStockAlertsState.status === "error" && `Error: ${state.lowStockAlertsState.message}`}
-            {state.lowStockAlertsState.status === "loaded" && state.selectedMaterialId
-              ? state.lowStockAlerts.some((a) => a.materialId === state.selectedMaterialId)
-                ? "BAJO"
-                : "OK"
-              : "—"}
+          <div className="panel">
+            <h2>Inventario</h2>
+            <p className="muted">Material: {selectedMaterial ? `${selectedMaterial.name} (${selectedMaterial.unit})` : "—"}</p>
+
+            <div className="kv">
+              <div className="kv__row">
+                <span className="kv__key">Stock</span>
+                <span className="kv__value">
+                  {state.stockState.status === "loading" && "Cargando..."}
+                  {state.stockState.status === "error" && `Error: ${state.stockState.message}`}
+                  {state.stockState.status === "loaded" && state.stock ? state.stock.stock : state.stockState.status === "idle" ? "—" : ""}
+                </span>
+              </div>
+
+              <div className="kv__row">
+                <span className="kv__key">Alerta stock mínimo</span>
+                <span className="kv__value">
+                  {state.lowStockAlertsState.status === "loading" && "Cargando..."}
+                  {state.lowStockAlertsState.status === "error" && `Error: ${state.lowStockAlertsState.message}`}
+                  {state.lowStockAlertsState.status === "loaded" && state.selectedMaterialId
+                    ? state.lowStockAlerts.some((a) => a.materialId === state.selectedMaterialId)
+                      ? "BAJO"
+                      : "OK"
+                    : "—"}
+                </span>
+              </div>
+            </div>
+
+            <h3>Stock mínimo</h3>
+            <form onSubmit={onSaveThreshold} className="formRow">
+              <input
+                aria-label="Stock mínimo"
+                value={minStockInput}
+                onChange={(e) => setMinStockInput(e.target.value)}
+                inputMode="decimal"
+              />
+              <button type="submit" disabled={!state.selectedMaterialId}>
+                Guardar umbral
+              </button>
+              <button type="button" onClick={onDeleteThreshold} disabled={!state.selectedMaterialId || !state.threshold}>
+                Eliminar umbral
+              </button>
+            </form>
+
+            <h3>Registrar movimiento</h3>
+            <form onSubmit={onCreateMovement} className="formRow">
+              <select value={createMoveType} onChange={(e) => setCreateMoveType(e.target.value as InventoryMovementType)}>
+                <option value="IN">IN</option>
+                <option value="OUT">OUT</option>
+                <option value="ADJUST">ADJUST</option>
+              </select>
+              <input
+                aria-label="Cantidad movimiento"
+                value={createMoveQty}
+                onChange={(e) => setCreateMoveQty(e.target.value)}
+                inputMode="decimal"
+              />
+              <input
+                aria-label="Motivo movimiento"
+                placeholder="Motivo (opcional)"
+                value={createMoveReason}
+                onChange={(e) => setCreateMoveReason(e.target.value)}
+              />
+              <button type="submit" disabled={!state.selectedMaterialId}>
+                Crear movimiento
+              </button>
+            </form>
+
+            <h3>Movimientos</h3>
+            {state.movementsState.status === "loading" && <p className="muted">Cargando...</p>}
+            {state.movementsState.status === "error" && <p className="error">Error: {state.movementsState.message}</p>}
+            <ul className="list">
+              {state.movements.map((m) => (
+                <li key={m.id} className="list__item">
+                  <div className="movement">
+                    <span className="movement__type">{m.type}</span>
+                    <span className="movement__qty">
+                      {m.quantity} {selectedMaterial?.unit ?? ""}
+                    </span>
+                    {m.reason ? <span className="movement__reason">— {m.reason}</span> : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <h3>Stock mínimo</h3>
-          <form onSubmit={onSaveThreshold} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <input
-              aria-label="Stock mínimo"
-              value={minStockInput}
-              onChange={(e) => setMinStockInput(e.target.value)}
-              inputMode="decimal"
-            />
-            <button type="submit" disabled={!state.selectedMaterialId}>
-              Guardar umbral
-            </button>
-            <button type="button" onClick={onDeleteThreshold} disabled={!state.selectedMaterialId || !state.threshold}>
-              Eliminar umbral
-            </button>
-          </form>
-
-          <h3>Registrar movimiento</h3>
-          <form onSubmit={onCreateMovement} style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <select value={createMoveType} onChange={(e) => setCreateMoveType(e.target.value as InventoryMovementType)}>
-              <option value="IN">IN</option>
-              <option value="OUT">OUT</option>
-              <option value="ADJUST">ADJUST</option>
-            </select>
-            <input
-              aria-label="Cantidad movimiento"
-              value={createMoveQty}
-              onChange={(e) => setCreateMoveQty(e.target.value)}
-              inputMode="decimal"
-            />
-            <input
-              aria-label="Motivo movimiento"
-              placeholder="Motivo (opcional)"
-              value={createMoveReason}
-              onChange={(e) => setCreateMoveReason(e.target.value)}
-            />
-            <button type="submit" disabled={!state.selectedMaterialId}>
-              Crear movimiento
-            </button>
-          </form>
-
-          <h3>Movimientos</h3>
-          {state.movementsState.status === "loading" && <p>Cargando...</p>}
-          {state.movementsState.status === "error" && <p>Error: {state.movementsState.message}</p>}
-          <ul>
-            {state.movements.map((m) => (
-              <li key={m.id}>
-                {m.type} {m.quantity} {selectedMaterial?.unit ?? ""} {m.reason ? `— ${m.reason}` : ""}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+        </section>
+      </main>
     </div>
   );
 }

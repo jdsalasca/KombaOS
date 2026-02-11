@@ -46,13 +46,19 @@ Como operación, quiero alertas de stock mínimo para evitar paradas de producci
   - Se genera alerta cuando el stock cae por debajo del umbral.
 
 ### Backlog técnico (priorizado)
-- P1: Implementar movimientos de inventario (IN/OUT/ADJUST) y cálculo de stock por material.
-- P1: Exponer endpoints CRUD para movimientos y endpoint de stock por material.
-- P1: Validación y manejo de errores consistente (DTO records + Bean Validation + Advice).
-- P1: Pruebas backend (unit + integración/smoke) para flujos de inventario.
-- P2: Mejorar UI para inventario (lista/alta de materiales, stock y movimientos) con estado tipado.
-- P2: Pruebas frontend (render + mocks de fetch) para flujos mínimos.
-- P3: Alertas de stock mínimo (modelo, reglas, endpoint, UI, tests).
+- Hecho: Movimientos de inventario (IN/OUT/ADJUST) + cálculo de stock por material.
+- Hecho: Endpoints movimientos + endpoint stock por material.
+- Hecho: DTO records + Bean Validation + Advice (errores consistentes).
+- Hecho: Pruebas backend (integración/smoke) para flujos de inventario.
+- Hecho: UI mínima de inventario (materiales, stock, movimientos) con estado tipado.
+- Hecho: Alertas de stock mínimo (umbral + endpoint + UI + tests).
+
+- P1: Completar HU-B1 (material con proveedor, costo, atributos) + filtros/búsqueda.
+- P1: E2E navegador (fullstack) para flujos críticos del MVP (inventario primero).
+- P1: Generalizar smoke tests (API + UI) y consolidar checks de EXE.
+- P2: Mejorar persistencia local (dummies/archivos) con helper reutilizable y más robusto.
+- P2: UI responsive y diseño base (layout, formularios, estados de error/carga).
+- P2: Preparar base para HU-C (producción) y HU-A (auth/RBAC) sin romper modo local.
 
 ## Épica C — Producción
 ### HU-C1: Órdenes de producción y etapas
