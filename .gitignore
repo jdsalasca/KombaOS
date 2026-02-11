@@ -1,0 +1,16 @@
+**/node_modules/
+**/dist/
+**/.turbo/
+**/.cache/
+
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+*.log
+*.tmp
+
+.idea/
+.vscode/
+*.iml
+
+.DS_Store
