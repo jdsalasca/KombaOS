@@ -45,6 +45,15 @@ Como operación, quiero alertas de stock mínimo para evitar paradas de producci
   - Se configuran umbrales por material.
   - Se genera alerta cuando el stock cae por debajo del umbral.
 
+### Backlog técnico (priorizado)
+- P1: Implementar movimientos de inventario (IN/OUT/ADJUST) y cálculo de stock por material.
+- P1: Exponer endpoints CRUD para movimientos y endpoint de stock por material.
+- P1: Validación y manejo de errores consistente (DTO records + Bean Validation + Advice).
+- P1: Pruebas backend (unit + integración/smoke) para flujos de inventario.
+- P2: Mejorar UI para inventario (lista/alta de materiales, stock y movimientos) con estado tipado.
+- P2: Pruebas frontend (render + mocks de fetch) para flujos mínimos.
+- P3: Alertas de stock mínimo (modelo, reglas, endpoint, UI, tests).
+
 ## Épica C — Producción
 ### HU-C1: Órdenes de producción y etapas
 Como operación, quiero crear órdenes de producción con etapas para planificar y controlar fabricación.

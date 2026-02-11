@@ -18,4 +18,227 @@ paths:
                 properties:
                   status:
                     type: string
-components: {}
+  /api/materials:
+    get:
+      summary: List materials
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Material'
+    post:
+      summary: Create material
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialUpsert'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+  /api/materials/{id}:
+    get:
+      summary: Get material
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+        '404':
+          description: Not found
+    put:
+      summary: Update material
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaterialUpsert'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+    delete:
+      summary: Delete material
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
+  /api/materials/{materialId}/stock:
+    get:
+      summary: Get material stock
+      parameters:
+        - in: path
+          name: materialId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaterialStock'
+        '404':
+          description: Not found
+  /api/inventory/movements:
+    get:
+      summary: List inventory movements
+      parameters:
+        - in: query
+          name: materialId
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryMovement'
+    post:
+      summary: Create inventory movement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryMovementCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMovement'
+        '400':
+          description: Bad request
+        '404':
+          description: Not found
+  /api/inventory/movements/{id}:
+    get:
+      summary: Get inventory movement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryMovement'
+        '404':
+          description: Not found
+    delete:
+      summary: Delete inventory movement
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
+components:
+  schemas:
+    Material:
+      type: object
+      required: [id, name, unit, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        unit:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    MaterialUpsert:
+      type: object
+      required: [name, unit]
+      properties:
+        name:
+          type: string
+        unit:
+          type: string
+    MaterialStock:
+      type: object
+      required: [materialId, stock]
+      properties:
+        materialId:
+          type: string
+        stock:
+          type: number
+    InventoryMovementType:
+      type: string
+      enum: [IN, OUT, ADJUST]
+    InventoryMovement:
+      type: object
+      required: [id, materialId, type, quantity, createdAt]
+      properties:
+        id:
+          type: string
+        materialId:
+          type: string
+        type:
+          $ref: '#/components/schemas/InventoryMovementType'
+        quantity:
+          type: number
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    InventoryMovementCreate:
+      type: object
+      required: [materialId, type, quantity]
+      properties:
+        materialId:
+          type: string
+        type:
+          $ref: '#/components/schemas/InventoryMovementType'
+        quantity:
+          type: number
+        reason:
+          type: string
