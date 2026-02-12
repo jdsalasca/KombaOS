@@ -21,6 +21,7 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
     thresholdActionState,
     movementActionState,
     actions,
+    lastUpdatedAt,
   } = useInventory(selectedMaterialId);
 
   const thresholdForm = useForm<{ minStock: string }>({
@@ -37,6 +38,11 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
     if (!selectedMaterialId) return false;
     return lowStockAlerts.some((a) => a.materialId === selectedMaterialId);
   }, [lowStockAlerts, selectedMaterialId]);
+
+  const lastUpdatedLabel = useMemo(() => {
+    if (!lastUpdatedAt) return "—";
+    return new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "short" }).format(lastUpdatedAt);
+  }, [lastUpdatedAt]);
 
   const isReloading =
     stockState.status === "loading" ||
@@ -70,6 +76,7 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
       )}
 
       <p className="muted">Material activo: {selectedMaterial ? `${selectedMaterial.name} (${selectedMaterial.unit})` : "—"}</p>
+      <p className="muted">Última actualización: {lastUpdatedLabel}</p>
 
       <div className="formRow">
         <button

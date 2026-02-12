@@ -8,12 +8,14 @@ export function useProducts() {
   const [productsState, setProductsState] = useState<LoadState>({ status: "idle" });
   const [createState, setCreateState] = useState<LoadState>({ status: "idle" });
   const [editState, setEditState] = useState<LoadState>({ status: "idle" });
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [userSelectedProductId, setUserSelectedProductId] = useState<string | null>(null);
 
   const list = useCallback(async () => {
     setProductsState({ status: "loading" });
     try {
       setProducts(await productsApi.list());
+      setLastUpdatedAt(new Date());
       setProductsState({ status: "loaded" });
     } catch (e) {
       setProductsState({ status: "error", message: e instanceof Error ? e.message : "Error" });
@@ -127,5 +129,6 @@ export function useProducts() {
     actions,
     createState,
     editState,
+    lastUpdatedAt,
   };
 }

@@ -10,6 +10,7 @@ type Props = {
   materialsState: LoadState;
   createState: LoadState;
   editState: LoadState;
+  lastUpdatedAt: Date | null;
   filtersDraft: MaterialsFiltersState;
   setFiltersDraft: (next: MaterialsFiltersState) => void;
   actions: {
@@ -48,6 +49,7 @@ export function MaterialsPanel({
   materialsState,
   createState,
   editState,
+  lastUpdatedAt,
   filtersDraft,
   setFiltersDraft,
   actions,
@@ -115,6 +117,10 @@ export function MaterialsPanel({
     return parts.join(" · ");
   }
 
+  const lastUpdatedLabel = lastUpdatedAt
+    ? new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "short" }).format(lastUpdatedAt)
+    : "—";
+
   return (
     <div className="card panel">
       <div className="panel__header">
@@ -124,6 +130,8 @@ export function MaterialsPanel({
         </div>
         <span className="pill">{materials.length} registrados</span>
       </div>
+
+      <p className="muted">Última actualización: {lastUpdatedLabel}</p>
 
       <div className="formRow">
         <button

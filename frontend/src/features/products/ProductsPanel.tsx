@@ -4,7 +4,17 @@ import { formatCopFromCents, parseCopInputToCents } from "../../lib/types";
 import { useProducts } from "./useProducts";
 
 export function ProductsPanel() {
-  const { products, productsState, selectedProductId, setSelectedProductId, selectedProduct, actions, createState, editState } = useProducts();
+  const {
+    products,
+    productsState,
+    selectedProductId,
+    setSelectedProductId,
+    selectedProduct,
+    actions,
+    createState,
+    editState,
+    lastUpdatedAt,
+  } = useProducts();
 
   type ProductFormInput = {
     name: string;
@@ -42,6 +52,10 @@ export function ProductsPanel() {
     });
   }, [selectedProduct, updateForm]);
 
+  const lastUpdatedLabel = lastUpdatedAt
+    ? new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "short" }).format(lastUpdatedAt)
+    : "—";
+
 
   return (
     <div className="card panel">
@@ -52,6 +66,8 @@ export function ProductsPanel() {
         </div>
         <span className="pill">{products.filter((p) => p.active).length} activos</span>
       </div>
+
+      <p className="muted">Última actualización: {lastUpdatedLabel}</p>
 
       <div className="formRow">
         <button

@@ -17,6 +17,7 @@ export function useMaterials() {
   const [materialsState, setMaterialsState] = useState<LoadState>({ status: "idle" });
   const [createState, setCreateState] = useState<LoadState>({ status: "idle" });
   const [editState, setEditState] = useState<LoadState>({ status: "idle" });
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
 
   const [filtersDraft, setFiltersDraft] = useState<MaterialsFiltersState>({
     q: "",
@@ -36,6 +37,7 @@ export function useMaterials() {
         certified: filtersApplied.certified || undefined,
       });
       setMaterials(next);
+      setLastUpdatedAt(new Date());
       setMaterialsState({ status: "loaded" });
     } catch (e) {
       setMaterialsState({ status: "error", message: e instanceof Error ? e.message : "Error" });
@@ -153,5 +155,6 @@ export function useMaterials() {
     actions,
     createState,
     editState,
+    lastUpdatedAt,
   };
 }

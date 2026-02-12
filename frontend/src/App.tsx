@@ -16,7 +16,8 @@ const navItems = [
 ];
 
 function App() {
-  const { materials, materialsState, filtersDraft, setFiltersDraft, actions, createState, editState } = useMaterials();
+  const { materials, materialsState, filtersDraft, setFiltersDraft, actions, createState, editState, lastUpdatedAt } =
+    useMaterials();
   const [userSelectedMaterialId, setUserSelectedMaterialId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState({ name: "", organization: "" });
@@ -217,6 +218,7 @@ function App() {
                 materialsState={materialsState}
                 createState={createState}
                 editState={editState}
+                lastUpdatedAt={lastUpdatedAt}
                 filtersDraft={filtersDraft}
                 setFiltersDraft={setFiltersDraft}
                 actions={actions}
