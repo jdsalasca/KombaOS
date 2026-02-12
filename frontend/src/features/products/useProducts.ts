@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { productsApi } from "../../lib/api";
+import { parseCopInputToCents } from "../../lib/types";
 import type { LoadState, Product } from "../../lib/types";
 
 export function useProducts() {
@@ -34,20 +35,7 @@ export function useProducts() {
     return products.find((p) => p.id === selectedProductId) ?? null;
   }, [products, selectedProductId]);
 
-  function parsePriceCents(raw: string): number | null {
-    const trimmed = raw.trim();
-    if (!trimmed.length) return null;
-    const parsed = Number(trimmed);
-    if (!Number.isFinite(parsed) || parsed < 0) return null;
-    return parsed;
-  }
-
-  function parseCurrency(raw: string): string | null {
-    const currency = raw.trim().toUpperCase();
-    if (!currency.length) return null;
-    if (!/^[A-Z]{3}$/.test(currency)) return null;
-    return currency;
-  }
+  const currency = "COP";
 
   const actions = useMemo(
     () => ({
@@ -55,22 +43,21 @@ export function useProducts() {
       async create(input: {
         name: string;
         description: string;
-        priceCents: string;
-        currency: string;
+        priceCop: string;
         active: boolean;
       }) {
         const name = input.name.trim();
         if (!name.length) return;
 
-        const priceCents = parsePriceCents(input.priceCents);
-        if (priceCents == null) return;
+        const description = input.description.trim();
+        if (!description.length) return;
 
-        const currency = parseCurrency(input.currency);
-        if (!currency) return;
+        const priceCents = parseCopInputToCents(input.priceCop);
+        if (priceCents == null) return;
 
         await productsApi.create({
           name,
-          description: input.description.trim(),
+          description,
           priceCents,
           currency,
           active: input.active,
@@ -81,22 +68,21 @@ export function useProducts() {
       async update(productId: string, input: {
         name: string;
         description: string;
-        priceCents: string;
-        currency: string;
+        priceCop: string;
         active: boolean;
       }) {
         const name = input.name.trim();
         if (!name.length) return;
 
-        const priceCents = parsePriceCents(input.priceCents);
-        if (priceCents == null) return;
+        const description = input.description.trim();
+        if (!description.length) return;
 
-        const currency = parseCurrency(input.currency);
-        if (!currency) return;
+        const priceCents = parseCopInputToCents(input.priceCop);
+        if (priceCents == null) return;
 
         await productsApi.update(productId, {
           name,
-          description: input.description.trim(),
+          description,
           priceCents,
           currency,
           active: input.active,

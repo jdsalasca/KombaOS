@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { materialsApi } from "../../lib/api";
+import { parseCopInputToCents } from "../../lib/types";
 import type { LoadState, Material } from "../../lib/types";
 
 export type CertifiedFilter = "" | "true" | "false";
@@ -61,8 +62,7 @@ export function useMaterials() {
         supplier: string;
         origin: string;
         certified: boolean;
-        costCents: string;
-        currency: string;
+        costCop: string;
       }) {
         const name = input.name.trim();
         const unit = input.unit.trim();
@@ -71,17 +71,9 @@ export function useMaterials() {
         const supplier = input.supplier.trim();
         const origin = input.origin.trim();
 
-        const costRaw = input.costCents.trim();
-        let costCents: number | null = null;
-        if (costRaw.length) {
-          const parsed = Number(costRaw);
-          if (!Number.isFinite(parsed) || parsed < 0) return;
-          costCents = parsed;
-        }
-
-        const currencyRaw = input.currency.trim().toUpperCase();
-        const currency = currencyRaw.length ? currencyRaw : null;
-        if (currency && !/^[A-Z]{3}$/.test(currency)) return;
+        const costCents = input.costCop.trim().length ? parseCopInputToCents(input.costCop) : null;
+        if (input.costCop.trim().length && costCents == null) return;
+        const currency = costCents == null ? null : "COP";
 
         await materialsApi.create({
           name,
@@ -100,8 +92,7 @@ export function useMaterials() {
         supplier: string;
         origin: string;
         certified: boolean;
-        costCents: string;
-        currency: string;
+        costCop: string;
       }) {
         const name = input.name.trim();
         const unit = input.unit.trim();
@@ -110,17 +101,9 @@ export function useMaterials() {
         const supplier = input.supplier.trim();
         const origin = input.origin.trim();
 
-        const costRaw = input.costCents.trim();
-        let costCents: number | null = null;
-        if (costRaw.length) {
-          const parsed = Number(costRaw);
-          if (!Number.isFinite(parsed) || parsed < 0) return;
-          costCents = parsed;
-        }
-
-        const currencyRaw = input.currency.trim().toUpperCase();
-        const currency = currencyRaw.length ? currencyRaw : null;
-        if (currency && !/^[A-Z]{3}$/.test(currency)) return;
+        const costCents = input.costCop.trim().length ? parseCopInputToCents(input.costCop) : null;
+        if (input.costCop.trim().length && costCents == null) return;
+        const currency = costCents == null ? null : "COP";
 
         await materialsApi.update(materialId, {
           name,

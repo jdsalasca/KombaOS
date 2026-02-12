@@ -28,6 +28,7 @@ $storageDir = Join-Path ([System.IO.Path]::GetTempPath()) ("kombaos_e2e_" + [Gui
 Push-Location (Join-Path $repoRoot "backend")
 try {
   $env:ENVIRONMENT = "local"
+  $env:SERVER_PORT = "8081"
   $env:KOMBAOS_LOCAL_STORAGE_DIR = $storageDir
   $env:DATABASE_URL = "jdbc:h2:mem:kombaos_e2e_" + [Guid]::NewGuid().ToString("N") + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
   .\mvnw.cmd -q -DskipTests spring-boot:run

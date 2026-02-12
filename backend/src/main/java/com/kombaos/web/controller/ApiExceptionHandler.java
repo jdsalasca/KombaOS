@@ -1,4 +1,4 @@
-package com.kombaos.web;
+package com.kombaos.web.controller;
 
 import java.util.Map;
 import java.util.NoSuchElementException;

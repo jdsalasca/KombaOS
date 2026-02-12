@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { formatCopFromCents, parseCopInputToCents } from "../../lib/types";
 import type { Material } from "../../lib/types";
 import type { MaterialsFiltersState } from "./useMaterials";
 import type { LoadState } from "../../lib/types";
@@ -18,8 +19,7 @@ type Props = {
       supplier: string;
       origin: string;
       certified: boolean;
-      costCents: string;
-      currency: string;
+      costCop: string;
     }) => Promise<void>;
     update: (
       materialId: string,
@@ -29,8 +29,7 @@ type Props = {
         supplier: string;
         origin: string;
         certified: boolean;
-        costCents: string;
-        currency: string;
+        costCop: string;
       },
     ) => Promise<void>;
     remove: (materialId: string) => Promise<void>;
@@ -57,8 +56,7 @@ export function MaterialsPanel({
     supplier: string;
     origin: string;
     certified: boolean;
-    costCents: string;
-    currency: string;
+    costCop: string;
   };
 
   const createForm = useForm<MaterialFormInput>({
@@ -68,8 +66,7 @@ export function MaterialsPanel({
       supplier: "",
       origin: "",
       certified: false,
-      costCents: "",
-      currency: "COP",
+      costCop: "",
     },
     mode: "onBlur",
   });
@@ -81,8 +78,7 @@ export function MaterialsPanel({
       supplier: "",
       origin: "",
       certified: false,
-      costCents: "",
-      currency: "COP",
+      costCop: "",
     },
     mode: "onBlur",
   });
@@ -94,8 +90,7 @@ export function MaterialsPanel({
       supplier: selectedMaterial?.supplier ?? "",
       origin: selectedMaterial?.origin ?? "",
       certified: selectedMaterial?.certified ?? false,
-      costCents: selectedMaterial?.costCents != null ? String(selectedMaterial.costCents) : "",
-      currency: selectedMaterial?.currency ?? "COP",
+      costCop: selectedMaterial?.costCents != null ? String(Math.round(selectedMaterial.costCents / 100)) : "",
     });
   }, [selectedMaterial, updateForm]);
 
@@ -110,7 +105,8 @@ export function MaterialsPanel({
     if (m.supplier) parts.push(m.supplier);
     if (m.origin) parts.push(m.origin);
     if (m.certified) parts.push("Certificado");
-    if (m.costCents != null && m.currency) parts.push(`${m.currency} ${m.costCents / 100}`);
+    const cost = formatCopFromCents(m.costCents);
+    if (cost) parts.push(cost);
     return parts.join(" · ");
   }
 
@@ -135,8 +131,7 @@ export function MaterialsPanel({
                 supplier: values.supplier.trim(),
                 origin: values.origin.trim(),
                 certified: values.certified,
-                costCents: values.costCents.trim(),
-                currency: values.currency.trim().toUpperCase(),
+                costCop: values.costCop.trim(),
               });
               createForm.reset({
                 name: "",
@@ -144,8 +139,7 @@ export function MaterialsPanel({
                 supplier: "",
                 origin: "",
                 certified: false,
-                costCents: "",
-                currency: "COP",
+                costCop: "",
               });
             })}
             className="formRow"
@@ -160,6 +154,7 @@ export function MaterialsPanel({
                 placeholder="Ej. Algodón"
                 {...createForm.register("name", {
                   required: "Ingresa el nombre del material.",
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
                 })}
               />
               {createForm.formState.errors.name ? (
@@ -176,6 +171,7 @@ export function MaterialsPanel({
                 placeholder="Ej. kg"
                 {...createForm.register("unit", {
                   required: "Ingresa la unidad del material.",
+                  maxLength: { value: 50, message: "Máximo 50 caracteres." },
                 })}
               />
               {createForm.formState.errors.unit ? (
@@ -188,7 +184,9 @@ export function MaterialsPanel({
                 className="field__input"
                 aria-label="Proveedor material"
                 placeholder="Ej. Proveedor Andes"
-                {...createForm.register("supplier")}
+                {...createForm.register("supplier", {
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
+                })}
               />
             </label>
             <label className="field">
@@ -197,51 +195,33 @@ export function MaterialsPanel({
                 className="field__input"
                 aria-label="Origen material"
                 placeholder="Ej. Colombia"
-                {...createForm.register("origin")}
+                {...createForm.register("origin", {
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
+                })}
               />
             </label>
             <label className="field">
-              <span className="field__label">Costo</span>
+              <span className="field__label">Costo (COP)</span>
               <input
                 className={
-                  createForm.formState.errors.costCents ? "field__input field__input--error" : "field__input"
+                  createForm.formState.errors.costCop ? "field__input field__input--error" : "field__input"
                 }
-                aria-label="Costo material (centavos)"
-                placeholder="Ej. 1200"
+                aria-label="Costo material (COP)"
+                placeholder="Ej. 120000"
                 inputMode="numeric"
-                {...createForm.register("costCents", {
+                {...createForm.register("costCop", {
                   validate: (value) => {
                     const trimmed = value.trim();
                     if (!trimmed) return true;
-                    const parsed = Number(trimmed);
-                    if (!Number.isFinite(parsed) || parsed < 0) {
-                      return "El costo debe ser un número válido.";
-                    }
+                    const cents = parseCopInputToCents(trimmed);
+                    if (cents == null) return "Ingresa un valor en pesos (sin decimales).";
                     return true;
                   },
                 })}
               />
-              <span className="field__hint">Valor en centavos.</span>
-              {createForm.formState.errors.costCents ? (
-                <span className="field__error">{createForm.formState.errors.costCents.message}</span>
-              ) : null}
-            </label>
-            <label className="field">
-              <span className="field__label">Moneda</span>
-              <input
-                className={
-                  createForm.formState.errors.currency ? "field__input field__input--error" : "field__input"
-                }
-                aria-label="Moneda material"
-                placeholder="COP"
-                {...createForm.register("currency", {
-                  required: "Ingresa la moneda.",
-                  validate: (value) =>
-                    /^[A-Za-z]{3}$/.test(value.trim()) || "La moneda debe tener 3 letras.",
-                })}
-              />
-              {createForm.formState.errors.currency ? (
-                <span className="field__error">{createForm.formState.errors.currency.message}</span>
+              <span className="field__hint">Pesos colombianos (opcional).</span>
+              {createForm.formState.errors.costCop ? (
+                <span className="field__error">{createForm.formState.errors.costCop.message}</span>
               ) : null}
             </label>
             <label className="field inline">
@@ -252,7 +232,7 @@ export function MaterialsPanel({
               />
               Certificado
             </label>
-            <button className="button button--primary" type="submit">
+            <button className="button button--primary" type="submit" disabled={createForm.formState.isSubmitting}>
               Crear material
             </button>
           </form>
@@ -352,8 +332,7 @@ export function MaterialsPanel({
               supplier: values.supplier.trim(),
               origin: values.origin.trim(),
               certified: values.certified,
-              costCents: values.costCents.trim(),
-              currency: values.currency.trim().toUpperCase(),
+              costCop: values.costCop.trim(),
             });
           })}
           className="formCol"
@@ -370,6 +349,7 @@ export function MaterialsPanel({
                 disabled={!selectedMaterialId}
                 {...updateForm.register("name", {
                   required: "Ingresa el nombre del material.",
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
                 })}
               />
               {updateForm.formState.errors.name ? (
@@ -387,6 +367,7 @@ export function MaterialsPanel({
                 disabled={!selectedMaterialId}
                 {...updateForm.register("unit", {
                   required: "Ingresa la unidad del material.",
+                  maxLength: { value: 50, message: "Máximo 50 caracteres." },
                 })}
               />
               {updateForm.formState.errors.unit ? (
@@ -400,7 +381,9 @@ export function MaterialsPanel({
                 aria-label="Editar proveedor material"
                 placeholder="Proveedor"
                 disabled={!selectedMaterialId}
-                {...updateForm.register("supplier")}
+                {...updateForm.register("supplier", {
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
+                })}
               />
             </label>
             <label className="field">
@@ -410,52 +393,33 @@ export function MaterialsPanel({
                 aria-label="Editar origen material"
                 placeholder="Origen"
                 disabled={!selectedMaterialId}
-                {...updateForm.register("origin")}
+                {...updateForm.register("origin", {
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
+                })}
               />
             </label>
             <label className="field">
-              <span className="field__label">Costo</span>
+              <span className="field__label">Costo (COP)</span>
               <input
                 className={
-                  updateForm.formState.errors.costCents ? "field__input field__input--error" : "field__input"
+                  updateForm.formState.errors.costCop ? "field__input field__input--error" : "field__input"
                 }
-                aria-label="Editar costo material (centavos)"
-                placeholder="Costo (centavos)"
+                aria-label="Editar costo material (COP)"
+                placeholder="Costo (COP)"
                 inputMode="numeric"
                 disabled={!selectedMaterialId}
-                {...updateForm.register("costCents", {
+                {...updateForm.register("costCop", {
                   validate: (value) => {
                     const trimmed = value.trim();
                     if (!trimmed) return true;
-                    const parsed = Number(trimmed);
-                    if (!Number.isFinite(parsed) || parsed < 0) {
-                      return "El costo debe ser un número válido.";
-                    }
+                    const cents = parseCopInputToCents(trimmed);
+                    if (cents == null) return "Ingresa un valor en pesos (sin decimales).";
                     return true;
                   },
                 })}
               />
-              {updateForm.formState.errors.costCents ? (
-                <span className="field__error">{updateForm.formState.errors.costCents.message}</span>
-              ) : null}
-            </label>
-            <label className="field">
-              <span className="field__label">Moneda</span>
-              <input
-                className={
-                  updateForm.formState.errors.currency ? "field__input field__input--error" : "field__input"
-                }
-                aria-label="Editar moneda costo material"
-                placeholder="COP"
-                disabled={!selectedMaterialId}
-                {...updateForm.register("currency", {
-                  required: "Ingresa la moneda.",
-                  validate: (value) =>
-                    /^[A-Za-z]{3}$/.test(value.trim()) || "La moneda debe tener 3 letras.",
-                })}
-              />
-              {updateForm.formState.errors.currency ? (
-                <span className="field__error">{updateForm.formState.errors.currency.message}</span>
+              {updateForm.formState.errors.costCop ? (
+                <span className="field__error">{updateForm.formState.errors.costCop.message}</span>
               ) : null}
             </label>
             <label className="field inline">
@@ -469,10 +433,19 @@ export function MaterialsPanel({
             </label>
           </div>
           <div className="formRow">
-            <button className="button button--primary" type="submit" disabled={!selectedMaterialId}>
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={!selectedMaterialId || updateForm.formState.isSubmitting}
+            >
               Guardar cambios
             </button>
-            <button className="button button--danger" type="button" onClick={onDeleteMaterial} disabled={!selectedMaterialId}>
+            <button
+              className="button button--danger"
+              type="button"
+              onClick={onDeleteMaterial}
+              disabled={!selectedMaterialId || updateForm.formState.isSubmitting}
+            >
               Eliminar material
             </button>
           </div>
