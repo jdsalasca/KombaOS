@@ -112,6 +112,12 @@ if ($SmokeTest) {
     if ($stillLow) { throw "Smoke test: no se esperaba alerta de stock bajo después del ingreso" }
 
     Write-Host "Smoke test: OK (threshold+alerts)"
+
+    $product = Invoke-Json -Method POST -Url "http://localhost:8080/api/products" -Body @{ name = "Ruana"; description = "Ruana de lana"; priceCents = 12000000; currency = "COP"; active = $true } -TimeoutSec 5
+    if (-not $product.id) { throw "Smoke test: product.id vacío" }
+    $products = Invoke-Json -Method GET -Url "http://localhost:8080/api/products" -TimeoutSec 5
+    if (-not $products) { throw "Smoke test: lista de productos vacía" }
+    Write-Host "Smoke test: OK (products)"
   } finally {
     if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
   }
