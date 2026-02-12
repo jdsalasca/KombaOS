@@ -301,7 +301,9 @@ export function MaterialsPanel({
 
       {materialsState.status === "loading" && <p className="muted">Cargando materiales...</p>}
       {materialsState.status === "error" && <p className="error">{materialsState.message}</p>}
-      {materialsState.status === "loaded" && !materials.length && <p className="muted">Aún no hay materiales registrados.</p>}
+      {materialsState.status === "loaded" && !materials.length && (
+        <p className="muted">Aún no hay materiales registrados. Completa el formulario de arriba para crear el primero.</p>
+      )}
 
       <ul className="list">
         {materials.map((m) => (

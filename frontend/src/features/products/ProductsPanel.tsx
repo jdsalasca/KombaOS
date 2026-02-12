@@ -147,7 +147,9 @@ export function ProductsPanel() {
 
       {productsState.status === "loading" && <p className="muted">Cargando productos...</p>}
       {productsState.status === "error" && <p className="error">{productsState.message}</p>}
-      {productsState.status === "loaded" && !products.length && <p className="muted">Aún no hay productos registrados.</p>}
+      {productsState.status === "loaded" && !products.length && (
+        <p className="muted">Aún no hay productos registrados. Crea el primero con nombre, descripción y precio.</p>
+      )}
 
       <ul className="list">
         {products.map((p) => (
