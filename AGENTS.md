@@ -1,22 +1,30 @@
-# Reglas de trabajo (GitFlow)
+Objetivo
+Estandarizar cómo los agentes contribuyen al repositorio de KombaOS con foco en estabilidad, usabilidad y releases confiables.
 
-## Ramas
+Alcance
+- Aplica a frontend, backend, empaquetado y workflows.
+- Prioriza integridad de datos, experiencia de usuario no técnico y releases reproducibles.
 
-- develop: rama base para el trabajo diario
-- release/*: preparación de releases desde develop
-- master: solo para releases publicados
+Flujo de trabajo
+- Trabaja en develop y entrega cambios listos para merge a master.
+- Mantén master exclusivo para releases y automatizaciones.
+- Mantén cambios pequeños, coherentes y fáciles de revisar.
 
-## Flujo de trabajo
+Calidad obligatoria
+- Frontend: npm run lint, npm run test, npm run build.
+- Backend: ./mvnw test.
+- No mezclar cambios funcionales con formateo no solicitado.
 
-1. Crear ramas de feature desde develop con el formato feature/<ticket>-<resumen>
-2. Abrir PR descriptivo hacia develop
-3. Merge por PR luego de revisión
-4. Crear rama release/<version> desde develop cuando el milestone tenga valor
-5. Abrir PR release/<version> -> master con checklist de release
-6. Crear el release desde master y etiquetar v<version>
-7. Volver a develop y continuar ciclo
+Releases
+- Todo release debe salir desde master.
+- No generar tags manuales fuera del workflow de release.
+- Verifica que el artefacto EXE quede adjunto a la Release.
 
-## Releases
+UX para usuarios no técnicos
+- Mensajes claros y en español.
+- Validaciones preventivas en formularios.
+- Estados vacíos guiados y acciones de un clic.
 
-- Se generan al cerrar un milestone con valor real para compartir
-- El release se hace desde master con tag v<version>
+Comunicación
+- Explica qué cambió y cómo validar.
+- Reporta riesgos y rollback si aplica.

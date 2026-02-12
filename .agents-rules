@@ -1,0 +1,20 @@
+Reglas de contribución
+- Mantén SRP en módulos y componentes.
+- Evita acoplar UI con lógica de datos.
+- Usa hooks para estados y efectos.
+- Tipado estricto en TypeScript.
+
+Convenciones
+- Archivos nuevos solo si son necesarios.
+- Reutiliza componentes y utilidades existentes.
+- Mantén naming consistente en español en UI.
+
+Validación mínima
+- npm run lint
+- npm run test
+- npm run build
+- ./mvnw test
+
+Release
+- Master solo para releases.
+- Develop como base de integración.
