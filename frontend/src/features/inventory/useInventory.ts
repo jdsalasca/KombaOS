@@ -16,6 +16,11 @@ export function useInventory(selectedMaterialId: string | null) {
   const [lowStockAlertsState, setLowStockAlertsState] = useState<LoadState>({ status: "idle" });
   const [thresholdActionState, setThresholdActionState] = useState<LoadState>({ status: "idle" });
   const [movementActionState, setMovementActionState] = useState<LoadState>({ status: "idle" });
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+
+  const markUpdated = useCallback(() => {
+    setLastUpdatedAt(new Date());
+  }, []);
 
   const loadStock = useCallback(async () => {
     if (!selectedMaterialId) {
@@ -27,10 +32,11 @@ export function useInventory(selectedMaterialId: string | null) {
     try {
       setStock(await materialsApi.stock(selectedMaterialId));
       setStockState({ status: "loaded" });
+      markUpdated();
     } catch (e) {
       setStockState({ status: "error", message: e instanceof Error ? e.message : "Error" });
     }
-  }, [selectedMaterialId]);
+  }, [markUpdated, selectedMaterialId]);
 
   const loadThreshold = useCallback(async () => {
     if (!selectedMaterialId) {
@@ -42,10 +48,11 @@ export function useInventory(selectedMaterialId: string | null) {
     try {
       setThreshold(await materialsApi.threshold(selectedMaterialId));
       setThresholdState({ status: "loaded" });
+      markUpdated();
     } catch (e) {
       setThresholdState({ status: "error", message: e instanceof Error ? e.message : "Error" });
     }
-  }, [selectedMaterialId]);
+  }, [markUpdated, selectedMaterialId]);
 
   const loadMovements = useCallback(async () => {
     if (!selectedMaterialId) {
@@ -57,20 +64,22 @@ export function useInventory(selectedMaterialId: string | null) {
     try {
       setMovements(await inventoryApi.movements(selectedMaterialId));
       setMovementsState({ status: "loaded" });
+      markUpdated();
     } catch (e) {
       setMovementsState({ status: "error", message: e instanceof Error ? e.message : "Error" });
     }
-  }, [selectedMaterialId]);
+  }, [markUpdated, selectedMaterialId]);
 
   const loadAlerts = useCallback(async () => {
     setLowStockAlertsState({ status: "loading" });
     try {
       setLowStockAlerts(await inventoryApi.lowStockAlerts());
       setLowStockAlertsState({ status: "loaded" });
+      markUpdated();
     } catch (e) {
       setLowStockAlertsState({ status: "error", message: e instanceof Error ? e.message : "Error" });
     }
-  }, []);
+  }, [markUpdated]);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -150,5 +159,6 @@ export function useInventory(selectedMaterialId: string | null) {
     thresholdActionState,
     movementActionState,
     actions,
+    lastUpdatedAt,
   };
 }
