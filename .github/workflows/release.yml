@@ -75,9 +75,20 @@ jobs:
           $version = $env:RELEASE_TAG.TrimStart('v')
           .\software\packaging\windows\package.ps1 -Environment local -PackageType exe -AppVersion $version
 
-      - name: Zip EXE
+      - name: Preparar artefactos para usuarios finales
         shell: pwsh
-        run: Compress-Archive -Force -Path .\dist\KombaOS -DestinationPath .\dist\KombaOS-windows.zip
+        run: |
+          $dist = Join-Path $PWD "dist"
+          $exe = Get-ChildItem -Path $dist -Filter "*.exe" -Recurse | Select-Object -First 1
+          if (-not $exe) {
+            throw "No se encontró ejecutable .exe en dist"
+          }
+
+          $installerExe = Join-Path $dist "KombaOS-Instalador-Windows.exe"
+          Copy-Item -Force $exe.FullName $installerExe
+
+          $installerZip = Join-Path $dist "KombaOS-Instalador-Windows.zip"
+          Compress-Archive -Force -Path $installerExe -DestinationPath $installerZip
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
@@ -92,8 +103,8 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
           files: |
-            dist/KombaOS-windows.zip
-            dist/*.exe
+            dist/KombaOS-Instalador-Windows.exe
+            dist/KombaOS-Instalador-Windows.zip
             dist/*.msi
           body_path: CHANGELOG.md
           name: ${{ env.RELEASE_TAG }}
