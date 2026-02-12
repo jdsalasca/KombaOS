@@ -94,8 +94,21 @@ jobs:
           $installerExe = Join-Path $dist "KombaOS-Instalador-Windows.exe"
           Copy-Item -Force $exe.FullName $installerExe
 
+          $instructionsPath = Join-Path $dist "INSTRUCCIONES.txt"
+          @"
+PASOS PARA INSTALAR KombaOS (Windows)
+
+1) Descarga el archivo KombaOS-Instalador-Windows.exe
+2) Haz doble clic y sigue el asistente
+3) Si Windows muestra una advertencia, selecciona "Más información" y luego "Ejecutar de todas formas"
+4) Al terminar, abre KombaOS desde el acceso directo en el escritorio o el menú Inicio
+5) Se abrirá en tu navegador: http://localhost:8080
+
+Si necesitas ayuda, contacta al equipo que te entregó esta aplicación.
+"@ | Set-Content -Path $instructionsPath -Encoding UTF8
+
           $installerZip = Join-Path $dist "KombaOS-Instalador-Windows.zip"
-          Compress-Archive -Force -Path $installerExe -DestinationPath $installerZip
+          Compress-Archive -Force -Path @($installerExe, $instructionsPath) -DestinationPath $installerZip
 
       - name: Upload dist
         uses: actions/upload-artifact@v4

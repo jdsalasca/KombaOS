@@ -56,6 +56,18 @@ cd software\packaging\windows
 
 El resultado queda en dist\KombaOS\KombaOS.exe.
 
+## Descarga e instalación (Windows)
+
+Para usuarios finales no técnicos, usa el instalador publicado en GitHub Releases.
+
+Pasos rápidos:
+
+1. Abre la página de Releases en GitHub.
+2. Descarga KombaOS-Instalador-Windows.exe.
+3. Haz doble clic y sigue el asistente.
+4. Si Windows muestra una advertencia, selecciona "Más información" y luego "Ejecutar de todas formas".
+5. Abre KombaOS desde el acceso directo. Se abrirá en el navegador en http://localhost:8080.
+
 ## CI/CD y releases
 
 - CI en GitHub Actions para backend y frontend
