@@ -17,9 +17,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check master ahead of develop
+        id: divergence
+        shell: bash
+        run: |
+          git fetch origin master develop --prune
+          if git merge-base --is-ancestor origin/master origin/develop; then
+            echo "ahead=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ahead=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create PR master -> develop
         id: cpr
         uses: peter-evans/create-pull-request@v6
+        if: steps.divergence.outputs.ahead == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: develop
