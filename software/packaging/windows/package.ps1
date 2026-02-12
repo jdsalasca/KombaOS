@@ -3,7 +3,10 @@ param(
   [string]$Environment = "local",
   [switch]$SmokeTest,
   [int]$SmokeTestTimeoutSeconds = 45,
-  [string]$IconPath = "C:\\Users\\jdsal\\Downloads\\cat.png"
+  [string]$IconPath = "C:\\Users\\jdsal\\Downloads\\cat.png",
+  [ValidateSet("exe","app-image")]
+  [string]$PackageType = "exe",
+  [string]$AppVersion = "0.1.1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -65,25 +68,49 @@ $jar = Get-ChildItem -Path (Join-Path $backendDir "target") -Filter "*.jar" | Wh
 if (-not $jar) { throw "No se encontró JAR en backend\\target" }
 
 $jpackageArgs = @(
-  "--type", "app-image",
+  "--type", $PackageType,
   "--name", "KombaOS",
-  "--app-version", "0.1.0",
+  "--app-version", $AppVersion,
   "--input", (Join-Path $backendDir "target"),
   "--main-jar", $jar.Name,
   "--dest", $distDir,
-  "--java-options", "-Dkombaos.environment=$Environment",
-  "--win-menu",
-  "--win-shortcut"
+  "--java-options", "-Dkombaos.environment=$Environment"
 )
+
+if ($PackageType -eq "exe") {
+  $jpackageArgs += @("--win-menu", "--win-shortcut")
+}
 
 if ($iconArgument) {
   $jpackageArgs += @("--icon", $iconArgument)
 }
 
 jpackage @jpackageArgs
+if ($LASTEXITCODE -ne 0) {
+  if ($PackageType -eq "exe") {
+    Write-Host "Empaquetado EXE falló, se intentará app-image."
+    $PackageType = "app-image"
+    $jpackageArgs = @(
+      "--type", $PackageType,
+      "--name", "KombaOS",
+      "--app-version", $AppVersion,
+      "--input", (Join-Path $backendDir "target"),
+      "--main-jar", $jar.Name,
+      "--dest", $distDir,
+      "--java-options", "-Dkombaos.environment=$Environment"
+    )
+    if ($iconArgument) {
+      $jpackageArgs += @("--icon", $iconArgument)
+    }
+    jpackage @jpackageArgs
+    if ($LASTEXITCODE -ne 0) { throw "Falló jpackage con app-image" }
+  } else {
+    throw "Falló jpackage con $PackageType"
+  }
+}
 Pop-Location
 
-if ($SmokeTest) {
+if ($SmokeTest -and $PackageType -eq "app-image") {
   $exePath = Join-Path $distDir "KombaOS\\KombaOS.exe"
   if (-not (Test-Path $exePath)) { throw "No se encontró el ejecutable: $exePath" }
 
