@@ -43,6 +43,15 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
         </span>
       </div>
 
+      {!selectedMaterialId && (
+        <div className="card">
+          <p className="muted">Selecciona o crea un material para habilitar stock, alertas y movimientos.</p>
+          <a className="button" href="#materiales">
+            Ir a materiales
+          </a>
+        </div>
+      )}
+
       <p className="muted">Material activo: {selectedMaterial ? `${selectedMaterial.name} (${selectedMaterial.unit})` : "—"}</p>
 
       <div className="kv">
