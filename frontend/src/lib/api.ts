@@ -181,3 +181,9 @@ export const productsApi = {
   },
 };
 
+export const healthApi = {
+  async status(): Promise<string> {
+    const res = await httpJson<{ status: string }>("/api/health");
+    return res.status;
+  },
+};

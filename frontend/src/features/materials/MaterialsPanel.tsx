@@ -8,6 +8,8 @@ import type { LoadState } from "../../lib/types";
 type Props = {
   materials: Material[];
   materialsState: LoadState;
+  createState: LoadState;
+  editState: LoadState;
   filtersDraft: MaterialsFiltersState;
   setFiltersDraft: (next: MaterialsFiltersState) => void;
   actions: {
@@ -43,6 +45,8 @@ type Props = {
 export function MaterialsPanel({
   materials,
   materialsState,
+  createState,
+  editState,
   filtersDraft,
   setFiltersDraft,
   actions,
@@ -232,9 +236,15 @@ export function MaterialsPanel({
               />
               Certificado
             </label>
-            <button className="button button--primary" type="submit" disabled={createForm.formState.isSubmitting}>
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={createForm.formState.isSubmitting || createState.status === "loading"}
+            >
               Crear material
             </button>
+            {createState.status === "loading" && <p className="muted">Guardando material...</p>}
+            {createState.status === "error" && <p className="error">{createState.message}</p>}
           </form>
         </div>
 
@@ -438,7 +448,7 @@ export function MaterialsPanel({
             <button
               className="button button--primary"
               type="submit"
-              disabled={!selectedMaterialId || updateForm.formState.isSubmitting}
+              disabled={!selectedMaterialId || updateForm.formState.isSubmitting || editState.status === "loading"}
             >
               Guardar cambios
             </button>
@@ -446,10 +456,12 @@ export function MaterialsPanel({
               className="button button--danger"
               type="button"
               onClick={onDeleteMaterial}
-              disabled={!selectedMaterialId || updateForm.formState.isSubmitting}
+              disabled={!selectedMaterialId || updateForm.formState.isSubmitting || editState.status === "loading"}
             >
               Eliminar material
             </button>
+            {editState.status === "loading" && <p className="muted">Actualizando material...</p>}
+            {editState.status === "error" && <p className="error">{editState.message}</p>}
           </div>
         </form>
       </div>

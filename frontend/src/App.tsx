@@ -1,10 +1,12 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import "./App.css";
 import { InventoryPanel } from "./features/inventory/InventoryPanel";
 import { MaterialsPanel } from "./features/materials/MaterialsPanel";
 import { useMaterials } from "./features/materials/useMaterials";
 import { ProductsPanel } from "./features/products/ProductsPanel";
+import { healthApi } from "./lib/api";
+import type { LoadState } from "./lib/types";
 
 const navItems = [
   { id: "inicio", label: "Inicio", meta: "Resumen" },
@@ -14,15 +16,34 @@ const navItems = [
 ];
 
 function App() {
-  const { materials, materialsState, filtersDraft, setFiltersDraft, actions } = useMaterials();
+  const { materials, materialsState, filtersDraft, setFiltersDraft, actions, createState, editState } = useMaterials();
   const [userSelectedMaterialId, setUserSelectedMaterialId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState({ name: "", organization: "" });
   const [activeSection, setActiveSection] = useState("inicio");
+  const [systemStatus, setSystemStatus] = useState<string | null>(null);
+  const [systemStatusState, setSystemStatusState] = useState<LoadState>({ status: "idle" });
   const loginForm = useForm<{ name: string; organization: string }>({
     defaultValues: { name: "", organization: "" },
     mode: "onSubmit",
   });
+
+  const loadSystemStatus = useCallback(async () => {
+    setSystemStatusState({ status: "loading" });
+    try {
+      setSystemStatus(await healthApi.status());
+      setSystemStatusState({ status: "loaded" });
+    } catch (e) {
+      setSystemStatus(null);
+      setSystemStatusState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+    }
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadSystemStatus();
+    });
+  }, [loadSystemStatus]);
 
   const selectedMaterialId = useMemo(() => {
     if (!materials.length) return null;
@@ -40,6 +61,13 @@ function App() {
     if (materialsState.status === "error") return "Error";
     return `${materials.length} materiales`;
   }, [materials.length, materialsState.status]);
+
+  const systemStatusLabel = useMemo(() => {
+    if (systemStatusState.status === "loading") return "Verificando...";
+    if (systemStatusState.status === "error") return "Sin conexión";
+    if (!systemStatus) return "—";
+    return systemStatus.toLowerCase() === "ok" ? "Operativo" : systemStatus;
+  }, [systemStatus, systemStatusState.status]);
 
   const selectedMaterialLabel = selectedMaterial
     ? `${selectedMaterial.name} (${selectedMaterial.unit})`
@@ -165,7 +193,7 @@ function App() {
                   </div>
                   <div className="card">
                     <p className="card__title">Estado del sistema</p>
-                    <p className="card__value">Operativo</p>
+                    <p className="card__value">{systemStatusLabel}</p>
                   </div>
                 </div>
                 <div className="hero__actions">
@@ -187,6 +215,8 @@ function App() {
               <MaterialsPanel
                 materials={materials}
                 materialsState={materialsState}
+                createState={createState}
+                editState={editState}
                 filtersDraft={filtersDraft}
                 setFiltersDraft={setFiltersDraft}
                 actions={actions}

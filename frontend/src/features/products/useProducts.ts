@@ -6,6 +6,8 @@ import type { LoadState, Product } from "../../lib/types";
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [productsState, setProductsState] = useState<LoadState>({ status: "idle" });
+  const [createState, setCreateState] = useState<LoadState>({ status: "idle" });
+  const [editState, setEditState] = useState<LoadState>({ status: "idle" });
   const [userSelectedProductId, setUserSelectedProductId] = useState<string | null>(null);
 
   const list = useCallback(async () => {
@@ -55,14 +57,20 @@ export function useProducts() {
         const priceCents = parseCopInputToCents(input.priceCop);
         if (priceCents == null) return;
 
-        await productsApi.create({
-          name,
-          description,
-          priceCents,
-          currency,
-          active: input.active,
-        });
-        await list();
+        setCreateState({ status: "loading" });
+        try {
+          await productsApi.create({
+            name,
+            description,
+            priceCents,
+            currency,
+            active: input.active,
+          });
+          await list();
+          setCreateState({ status: "loaded" });
+        } catch (e) {
+          setCreateState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
 
       async update(productId: string, input: {
@@ -80,19 +88,31 @@ export function useProducts() {
         const priceCents = parseCopInputToCents(input.priceCop);
         if (priceCents == null) return;
 
-        await productsApi.update(productId, {
-          name,
-          description,
-          priceCents,
-          currency,
-          active: input.active,
-        });
-        await list();
+        setEditState({ status: "loading" });
+        try {
+          await productsApi.update(productId, {
+            name,
+            description,
+            priceCents,
+            currency,
+            active: input.active,
+          });
+          await list();
+          setEditState({ status: "loaded" });
+        } catch (e) {
+          setEditState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
 
       async remove(productId: string) {
-        await productsApi.delete(productId);
-        await list();
+        setEditState({ status: "loading" });
+        try {
+          await productsApi.delete(productId);
+          await list();
+          setEditState({ status: "loaded" });
+        } catch (e) {
+          setEditState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
     }),
     [list],
@@ -105,5 +125,7 @@ export function useProducts() {
     setSelectedProductId: setUserSelectedProductId,
     selectedProduct,
     actions,
+    createState,
+    editState,
   };
 }

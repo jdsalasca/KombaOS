@@ -15,6 +15,8 @@ export type MaterialsFiltersState = {
 export function useMaterials() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsState, setMaterialsState] = useState<LoadState>({ status: "idle" });
+  const [createState, setCreateState] = useState<LoadState>({ status: "idle" });
+  const [editState, setEditState] = useState<LoadState>({ status: "idle" });
 
   const [filtersDraft, setFiltersDraft] = useState<MaterialsFiltersState>({
     q: "",
@@ -75,16 +77,22 @@ export function useMaterials() {
         if (input.costCop.trim().length && costCents == null) return;
         const currency = costCents == null ? null : "COP";
 
-        await materialsApi.create({
-          name,
-          unit,
-          supplier: supplier.length ? supplier : null,
-          origin: origin.length ? origin : null,
-          certified: input.certified,
-          costCents,
-          currency,
-        });
-        await list();
+        setCreateState({ status: "loading" });
+        try {
+          await materialsApi.create({
+            name,
+            unit,
+            supplier: supplier.length ? supplier : null,
+            origin: origin.length ? origin : null,
+            certified: input.certified,
+            costCents,
+            currency,
+          });
+          await list();
+          setCreateState({ status: "loaded" });
+        } catch (e) {
+          setCreateState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
       async update(materialId: string, input: {
         name: string;
@@ -105,20 +113,32 @@ export function useMaterials() {
         if (input.costCop.trim().length && costCents == null) return;
         const currency = costCents == null ? null : "COP";
 
-        await materialsApi.update(materialId, {
-          name,
-          unit,
-          supplier: supplier.length ? supplier : null,
-          origin: origin.length ? origin : null,
-          certified: input.certified,
-          costCents,
-          currency,
-        });
-        await list();
+        setEditState({ status: "loading" });
+        try {
+          await materialsApi.update(materialId, {
+            name,
+            unit,
+            supplier: supplier.length ? supplier : null,
+            origin: origin.length ? origin : null,
+            certified: input.certified,
+            costCents,
+            currency,
+          });
+          await list();
+          setEditState({ status: "loaded" });
+        } catch (e) {
+          setEditState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
       async remove(materialId: string) {
-        await materialsApi.delete(materialId);
-        await list();
+        setEditState({ status: "loading" });
+        try {
+          await materialsApi.delete(materialId);
+          await list();
+          setEditState({ status: "loaded" });
+        } catch (e) {
+          setEditState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
       reload: list,
     }),
@@ -131,5 +151,7 @@ export function useMaterials() {
     filtersDraft,
     setFiltersDraft,
     actions,
+    createState,
+    editState,
   };
 }
