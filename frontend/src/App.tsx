@@ -5,9 +5,21 @@ import { MaterialsPanel } from "./features/materials/MaterialsPanel";
 import { useMaterials } from "./features/materials/useMaterials";
 import { ProductsPanel } from "./features/products/ProductsPanel";
 
+const navItems = [
+  { id: "inicio", label: "Inicio", meta: "Resumen" },
+  { id: "materiales", label: "Materiales", meta: "Insumos" },
+  { id: "inventario", label: "Inventario", meta: "Stock y alertas" },
+  { id: "productos", label: "Productos", meta: "Catálogo" },
+];
+
 function App() {
   const { materials, materialsState, filtersDraft, setFiltersDraft, actions } = useMaterials();
   const [userSelectedMaterialId, setUserSelectedMaterialId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginName, setLoginName] = useState("");
+  const [loginOrg, setLoginOrg] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [activeSection, setActiveSection] = useState("inicio");
 
   const selectedMaterialId = useMemo(() => {
     if (!materials.length) return null;
@@ -20,28 +32,185 @@ function App() {
     return materials.find((m) => m.id === selectedMaterialId) ?? null;
   }, [materials, selectedMaterialId]);
 
+  const materialsSummary = useMemo(() => {
+    if (materialsState.status === "loading") return "Cargando...";
+    if (materialsState.status === "error") return "Error";
+    return `${materials.length} materiales`;
+  }, [materials.length, materialsState.status]);
+
+  const selectedMaterialLabel = selectedMaterial
+    ? `${selectedMaterial.name} (${selectedMaterial.unit})`
+    : "Sin material seleccionado";
+
+  if (!isAuthenticated) {
+    return (
+      <div className="app">
+        <div className="login">
+          <div className="card login__card">
+            <div>
+              <h1 className="login__title">Bienvenido a KombaOS</h1>
+              <p className="login__subtitle">Gestiona inventarios y catálogo sin complicaciones.</p>
+            </div>
+            <form
+              className="form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const trimmedName = loginName.trim();
+                if (!trimmedName.length) {
+                  setLoginError("Ingresa tu nombre para continuar.");
+                  return;
+                }
+                setLoginError("");
+                setIsAuthenticated(true);
+              }}
+            >
+              <label className="field">
+                <span className="field__label">Nombre</span>
+                <input
+                  className="field__input"
+                  value={loginName}
+                  onChange={(event) => setLoginName(event.target.value)}
+                  placeholder="Ej. Ana Pérez"
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">Taller o empresa</span>
+                <input
+                  className="field__input"
+                  value={loginOrg}
+                  onChange={(event) => setLoginOrg(event.target.value)}
+                  placeholder="Ej. Taller Andino"
+                />
+              </label>
+              {loginError ? <p className="field__error">{loginError}</p> : null}
+              <button className="button button--primary" type="submit">
+                Entrar al sistema
+              </button>
+              <p className="muted">Este acceso es local y se usa para personalizar la experiencia.</p>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
-      <header className="app__header">
-        <h1 className="app__title">KombaOS</h1>
-      </header>
+      <div className="shell">
+        <aside className="sidebar">
+          <div className="brand">
+            <p className="brand__title">KombaOS</p>
+            <span className="brand__subtitle">Inventario artesanal claro y simple</span>
+          </div>
+          <nav className="nav">
+            {navItems.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className={activeSection === item.id ? "nav__link nav__link--active" : "nav__link"}
+                onClick={() => setActiveSection(item.id)}
+              >
+                <span>{item.label}</span>
+                <span className="nav__meta">{item.meta}</span>
+              </a>
+            ))}
+          </nav>
+          <div className="sidebar__footer">
+            <span>Usuario: {loginName.trim() || "Operador"}</span>
+            <span>{loginOrg.trim() || "Sin empresa definida"}</span>
+          </div>
+        </aside>
+        <div className="main">
+          <div className="topbar">
+            <div>
+              <h2 className="topbar__title">Hola, {loginName.trim() || "operador"}</h2>
+              <p className="topbar__subtitle">Revisa el estado del inventario y gestiona tu catálogo.</p>
+            </div>
+            <div className="topbar__actions">
+              <a className="button" href="#materiales" onClick={() => setActiveSection("materiales")}
+                >Ir a materiales</a>
+              <button
+                className="button button--ghost"
+                type="button"
+                onClick={() => {
+                  setIsAuthenticated(false);
+                  setLoginName("");
+                  setLoginOrg("");
+                  setLoginError("");
+                }}
+              >
+                Salir
+              </button>
+            </div>
+          </div>
 
-      <main className="app__main">
-        <section className="grid">
-          <MaterialsPanel
-            materials={materials}
-            materialsState={materialsState}
-            filtersDraft={filtersDraft}
-            setFiltersDraft={setFiltersDraft}
-            actions={actions}
-            selectedMaterialId={selectedMaterialId}
-            selectedMaterial={selectedMaterial}
-            onSelectMaterialId={setUserSelectedMaterialId}
-          />
-          <InventoryPanel selectedMaterial={selectedMaterial} selectedMaterialId={selectedMaterialId} />
-          <ProductsPanel />
-        </section>
-      </main>
+          <main className="content">
+            <section id="inicio" className="section">
+              <div className="card hero">
+                <div>
+                  <h1 className="hero__title">Panel principal</h1>
+                  <p className="hero__subtitle">Todo lo que necesitas para mantener el control, en un solo lugar.</p>
+                </div>
+                <div className="cards">
+                  <div className="card">
+                    <p className="card__title">Materiales registrados</p>
+                    <p className="card__value">{materialsSummary}</p>
+                  </div>
+                  <div className="card">
+                    <p className="card__title">Material activo</p>
+                    <p className="card__value">{selectedMaterialLabel}</p>
+                  </div>
+                  <div className="card">
+                    <p className="card__title">Estado del sistema</p>
+                    <p className="card__value">Operativo</p>
+                  </div>
+                </div>
+                <div className="hero__actions">
+                  <a className="button button--primary" href="#materiales" onClick={() => setActiveSection("materiales")}
+                    >Crear material</a>
+                  <a className="button" href="#inventario" onClick={() => setActiveSection("inventario")}
+                    >Registrar movimiento</a>
+                  <a className="button" href="#productos" onClick={() => setActiveSection("productos")}
+                    >Agregar producto</a>
+                </div>
+              </div>
+            </section>
+
+            <section id="materiales" className="section">
+              <div>
+                <h2 className="section__title">Materiales</h2>
+                <p className="section__subtitle">Registra insumos, proveedores y certificaciones.</p>
+              </div>
+              <MaterialsPanel
+                materials={materials}
+                materialsState={materialsState}
+                filtersDraft={filtersDraft}
+                setFiltersDraft={setFiltersDraft}
+                actions={actions}
+                selectedMaterialId={selectedMaterialId}
+                selectedMaterial={selectedMaterial}
+                onSelectMaterialId={setUserSelectedMaterialId}
+              />
+            </section>
+
+            <section id="inventario" className="section">
+              <div>
+                <h2 className="section__title">Inventario</h2>
+                <p className="section__subtitle">Controla stock, alertas y movimientos.</p>
+              </div>
+              <InventoryPanel selectedMaterial={selectedMaterial} selectedMaterialId={selectedMaterialId} />
+            </section>
+
+            <section id="productos" className="section">
+              <div>
+                <h2 className="section__title">Productos</h2>
+                <p className="section__subtitle">Mantén tu catálogo actualizado y con precios claros.</p>
+              </div>
+              <ProductsPanel />
+            </section>
+          </main>
+        </div>
+      </div>
     </div>
   );
 }
