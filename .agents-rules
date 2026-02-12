@@ -3,11 +3,15 @@ Reglas de contribución
 - Evita acoplar UI con lógica de datos.
 - Usa hooks para estados y efectos.
 - Tipado estricto en TypeScript.
+- Métodos pequeños con un solo propósito.
+- Evita super clases, usa composición.
+- Depende de interfaces, no implementaciones.
 
 Convenciones
 - Archivos nuevos solo si son necesarios.
 - Reutiliza componentes y utilidades existentes.
 - Mantén naming consistente en español en UI.
+- No mezclar refactors con cambios funcionales.
 
 Validación mínima
 - npm run lint
@@ -18,3 +22,5 @@ Validación mínima
 Release
 - Master solo para releases.
 - Develop como base de integración.
+- Trabaja en feature/* y abre PR a develop.
+- Releases periódicos cuando master difiera de develop.
