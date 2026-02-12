@@ -21,6 +21,27 @@ paths:
   /api/materials:
     get:
       summary: List materials
+      parameters:
+        - in: query
+          name: q
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: supplier
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: origin
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: certified
+          required: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -249,7 +270,7 @@ components:
   schemas:
     Material:
       type: object
-      required: [id, name, unit, createdAt]
+      required: [id, name, unit, certified, createdAt]
       properties:
         id:
           type: string
@@ -257,6 +278,21 @@ components:
           type: string
         unit:
           type: string
+        supplier:
+          type: string
+          nullable: true
+        origin:
+          type: string
+          nullable: true
+        certified:
+          type: boolean
+        costCents:
+          type: integer
+          format: int64
+          nullable: true
+        currency:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -268,6 +304,22 @@ components:
           type: string
         unit:
           type: string
+        supplier:
+          type: string
+          nullable: true
+        origin:
+          type: string
+          nullable: true
+        certified:
+          type: boolean
+          nullable: true
+        costCents:
+          type: integer
+          format: int64
+          nullable: true
+        currency:
+          type: string
+          nullable: true
     MaterialStock:
       type: object
       required: [materialId, stock]
