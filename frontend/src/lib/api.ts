@@ -8,7 +8,7 @@ import type {
   Product,
 } from "./types";
 
-const apiBaseUrl = "";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 

@@ -2,7 +2,8 @@ param(
   [ValidateSet("local","cloud")]
   [string]$Environment = "local",
   [switch]$SmokeTest,
-  [int]$SmokeTestTimeoutSeconds = 45
+  [int]$SmokeTestTimeoutSeconds = 45,
+  [string]$IconPath = "C:\\Users\\jdsal\\Downloads\\cat.png"
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,6 +16,20 @@ $frontendDir = Join-Path $root "frontend"
 $backendDir = Join-Path $root "backend"
 $backendStaticDir = Join-Path $backendDir "src\\main\\resources\\static"
 $distDir = Join-Path $root "dist"
+
+$iconArgument = $null
+if ($IconPath -and (Test-Path $IconPath)) {
+  Add-Type -AssemblyName System.Drawing
+  $iconTemp = Join-Path ([System.IO.Path]::GetTempPath()) ("kombaos_icon_" + [Guid]::NewGuid().ToString("N") + ".ico")
+  $bitmap = [System.Drawing.Bitmap]::new($IconPath)
+  $icon = [System.Drawing.Icon]::FromHandle($bitmap.GetHicon())
+  $stream = [System.IO.File]::Open($iconTemp, [System.IO.FileMode]::Create)
+  $icon.Save($stream)
+  $stream.Close()
+  $icon.Dispose()
+  $bitmap.Dispose()
+  $iconArgument = $iconTemp
+}
 
 function Invoke-Json {
   param(
@@ -49,15 +64,23 @@ Push-Location $backendDir
 $jar = Get-ChildItem -Path (Join-Path $backendDir "target") -Filter "*.jar" | Where-Object { $_.Name -notmatch "original" } | Select-Object -First 1
 if (-not $jar) { throw "No se encontró JAR en backend\\target" }
 
-jpackage `
-  --type app-image `
-  --name "KombaOS" `
-  --app-version "0.1.0" `
-  --input (Join-Path $backendDir "target") `
-  --main-jar $jar.Name `
-  --dest $distDir `
-  --java-options "-Dkombaos.environment=$Environment" `
-  --win-console
+$jpackageArgs = @(
+  "--type", "app-image",
+  "--name", "KombaOS",
+  "--app-version", "0.1.0",
+  "--input", (Join-Path $backendDir "target"),
+  "--main-jar", $jar.Name,
+  "--dest", $distDir,
+  "--java-options", "-Dkombaos.environment=$Environment",
+  "--win-menu",
+  "--win-shortcut"
+)
+
+if ($iconArgument) {
+  $jpackageArgs += @("--icon", $iconArgument)
+}
+
+jpackage @jpackageArgs
 Pop-Location
 
 if ($SmokeTest) {
