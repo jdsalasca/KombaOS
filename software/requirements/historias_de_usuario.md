@@ -5,6 +5,17 @@
 - Digitalizar técnicas y saberes (base de conocimiento) y habilitar formación (cursos/workshops).
 - Habilitar medición/analítica operacional (no “IA”), con reportes y dashboards.
 
+## Extracto del Anexo 2 (03_anexo_2_prop.docx)
+### Objetivo general
+- Desarrollar un modelo automatizado para la producción y comercialización artesanal de textiles, apoyado con IA para optimizar producción, comercialización y fidelización, promoviendo sostenibilidad e inclusión de oficios tradicionales en Boyacá.
+
+### Objetivos específicos (base de backlog)
+- Estandarizar y digitalizar técnicas artesanales textiles; base de conocimiento e inventarios/tiempos/recursos.
+- Implementar análisis de tendencias y ventas en tiempo real (web + redes sociales + integraciones).
+- Crear plataforma web: visibilizar artesanos, cursos/workshops y contacto para colaboraciones.
+- Desarrollar fidelización basada en datos (encuestas, seguimiento postventa).
+- Sentar bases de protección de marca y sistema digital (patentes/registro).
+
 ## Roles (RBAC)
 - Admin: configuración, usuarios, permisos, catálogos maestros.
 - Operación/Taller: producción, consumos, inventarios, calidad.
@@ -52,9 +63,10 @@ Como operación, quiero alertas de stock mínimo para evitar paradas de producci
 - Hecho: Pruebas backend (integración/smoke) para flujos de inventario.
 - Hecho: UI mínima de inventario (materiales, stock, movimientos) con estado tipado.
 - Hecho: Alertas de stock mínimo (umbral + endpoint + UI + tests).
+- Hecho: E2E navegador (fullstack) para flujo crítico de inventario.
 
 - P1: Completar HU-B1 (material con proveedor, costo, atributos) + filtros/búsqueda.
-- P1: E2E navegador (fullstack) para flujos críticos del MVP (inventario primero).
+- P1: Backoffice CRUD de productos (HU-E3 básico) y catálogo mínimo.
 - P1: Generalizar smoke tests (API + UI) y consolidar checks de EXE.
 - P2: Mejorar persistencia local (dummies/archivos) con helper reutilizable y más robusto.
 - P2: UI responsive y diseño base (layout, formularios, estados de error/carga).

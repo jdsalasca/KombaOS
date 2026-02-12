@@ -1,0 +1,43 @@
+name: Reporte de bug
+description: Reporta un problema para ayudar a mejorar KombaOS
+title: "bug: "
+labels: [bug]
+body:
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripción
+      description: ¿Qué ocurre y qué esperabas que ocurriera?
+      placeholder: Describe el problema con claridad
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Ir a...
+        2. Hacer click en...
+        3. Ver error...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs o evidencia
+      description: Incluye mensajes de consola, capturas o video si aplica
+      placeholder: Pega aquí la evidencia
+  - type: input
+    id: version
+    attributes:
+      label: Versión
+      placeholder: v0.1.0
+    validations:
+      required: true
+  - type: input
+    id: entorno
+    attributes:
+      label: Entorno
+      placeholder: Windows 11, Java 21, Node 20
+    validations:
+      required: true

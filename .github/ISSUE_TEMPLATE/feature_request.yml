@@ -1,0 +1,38 @@
+name: Solicitud de funcionalidad
+description: Propón una mejora o nueva funcionalidad
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Problema a resolver
+      description: ¿Qué dolor o necesidad aborda esta mejora?
+      placeholder: Describe el problema actual
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Propuesta
+      description: ¿Qué solución propones?
+      placeholder: Describe la funcionalidad deseada
+    validations:
+      required: true
+  - type: textarea
+    id: valor
+    attributes:
+      label: Valor esperado
+      placeholder: Impacto en usuarios, operación o negocio
+    validations:
+      required: true
+  - type: textarea
+    id: alcance
+    attributes:
+      label: Alcance
+      placeholder: Qué incluye y qué no incluye
+  - type: input
+    id: prioridad
+    attributes:
+      label: Prioridad sugerida
+      placeholder: Alta / Media / Baja
