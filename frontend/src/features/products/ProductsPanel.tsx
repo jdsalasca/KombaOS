@@ -53,6 +53,17 @@ export function ProductsPanel() {
         <span className="pill">{products.filter((p) => p.active).length} activos</span>
       </div>
 
+      <div className="formRow">
+        <button
+          className="button button--ghost"
+          type="button"
+          onClick={actions.reload}
+          disabled={productsState.status === "loading"}
+        >
+          Recargar lista
+        </button>
+      </div>
+
       <div className="form">
         <div>
           <h3 className="panel__title">Crear producto</h3>
