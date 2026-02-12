@@ -4,7 +4,7 @@ import { formatCopFromCents, parseCopInputToCents } from "../../lib/types";
 import { useProducts } from "./useProducts";
 
 export function ProductsPanel() {
-  const { products, productsState, selectedProductId, setSelectedProductId, selectedProduct, actions } = useProducts();
+  const { products, productsState, selectedProductId, setSelectedProductId, selectedProduct, actions, createState, editState } = useProducts();
 
   type ProductFormInput = {
     name: string;
@@ -138,9 +138,15 @@ export function ProductsPanel() {
               />
               Producto activo
             </label>
-            <button className="button button--primary" type="submit" disabled={createForm.formState.isSubmitting}>
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={createForm.formState.isSubmitting || createState.status === "loading"}
+            >
               Crear producto
             </button>
+            {createState.status === "loading" && <p className="muted">Guardando producto...</p>}
+            {createState.status === "error" && <p className="error">{createState.message}</p>}
           </form>
         </div>
       </div>
@@ -257,7 +263,7 @@ export function ProductsPanel() {
             <button
               className="button button--primary"
               type="submit"
-              disabled={!selectedProductId || updateForm.formState.isSubmitting}
+              disabled={!selectedProductId || updateForm.formState.isSubmitting || editState.status === "loading"}
             >
               Guardar cambios
             </button>
@@ -269,10 +275,12 @@ export function ProductsPanel() {
                 await actions.remove(selectedProductId);
                 setSelectedProductId(null);
               }}
-              disabled={!selectedProductId || updateForm.formState.isSubmitting}
+              disabled={!selectedProductId || updateForm.formState.isSubmitting || editState.status === "loading"}
             >
               Eliminar
             </button>
+            {editState.status === "loading" && <p className="muted">Actualizando producto...</p>}
+            {editState.status === "error" && <p className="error">{editState.message}</p>}
           </div>
         </form>
       </div>

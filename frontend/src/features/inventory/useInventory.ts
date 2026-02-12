@@ -14,6 +14,8 @@ export function useInventory(selectedMaterialId: string | null) {
 
   const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([]);
   const [lowStockAlertsState, setLowStockAlertsState] = useState<LoadState>({ status: "idle" });
+  const [thresholdActionState, setThresholdActionState] = useState<LoadState>({ status: "idle" });
+  const [movementActionState, setMovementActionState] = useState<LoadState>({ status: "idle" });
 
   const loadStock = useCallback(async () => {
     if (!selectedMaterialId) {
@@ -90,13 +92,25 @@ export function useInventory(selectedMaterialId: string | null) {
         if (!trimmed.length) return;
         const parsed = Number(trimmed);
         if (!Number.isFinite(parsed) || parsed < 0) return;
-        await materialsApi.upsertThreshold(selectedMaterialId, parsed);
-        await Promise.all([loadThreshold(), loadAlerts()]);
+        setThresholdActionState({ status: "loading" });
+        try {
+          await materialsApi.upsertThreshold(selectedMaterialId, parsed);
+          await Promise.all([loadThreshold(), loadAlerts()]);
+          setThresholdActionState({ status: "loaded" });
+        } catch (e) {
+          setThresholdActionState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
       async deleteThreshold() {
         if (!selectedMaterialId) return;
-        await materialsApi.deleteThreshold(selectedMaterialId);
-        await Promise.all([loadThreshold(), loadAlerts()]);
+        setThresholdActionState({ status: "loading" });
+        try {
+          await materialsApi.deleteThreshold(selectedMaterialId);
+          await Promise.all([loadThreshold(), loadAlerts()]);
+          setThresholdActionState({ status: "loaded" });
+        } catch (e) {
+          setThresholdActionState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
       async createMovement(type: InventoryMovementType, qtyRaw: string, reason: string) {
         if (!selectedMaterialId) return;
@@ -105,14 +119,20 @@ export function useInventory(selectedMaterialId: string | null) {
         const quantity = Number(qtyTrimmed);
         if (!Number.isFinite(quantity) || quantity <= 0) return;
 
-        await inventoryApi.createMovement({
-          materialId: selectedMaterialId,
-          type,
-          quantity,
-          reason: reason.trim().length ? reason.trim() : undefined,
-        });
+        setMovementActionState({ status: "loading" });
+        try {
+          await inventoryApi.createMovement({
+            materialId: selectedMaterialId,
+            type,
+            quantity,
+            reason: reason.trim().length ? reason.trim() : undefined,
+          });
 
-        await Promise.all([loadMovements(), loadStock(), loadAlerts()]);
+          await Promise.all([loadMovements(), loadStock(), loadAlerts()]);
+          setMovementActionState({ status: "loaded" });
+        } catch (e) {
+          setMovementActionState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
     }),
     [loadAlerts, loadMovements, loadStock, loadThreshold, selectedMaterialId],
@@ -127,6 +147,8 @@ export function useInventory(selectedMaterialId: string | null) {
     movementsState,
     lowStockAlerts,
     lowStockAlertsState,
+    thresholdActionState,
+    movementActionState,
     actions,
   };
 }

@@ -9,8 +9,18 @@ type Props = {
 };
 
 export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) {
-  const { stock, stockState, threshold, movements, movementsState, lowStockAlerts, lowStockAlertsState, actions } =
-    useInventory(selectedMaterialId);
+  const {
+    stock,
+    stockState,
+    threshold,
+    movements,
+    movementsState,
+    lowStockAlerts,
+    lowStockAlertsState,
+    thresholdActionState,
+    movementActionState,
+    actions,
+  } = useInventory(selectedMaterialId);
 
   const thresholdForm = useForm<{ minStock: string }>({
     defaultValues: { minStock: "" },
@@ -111,12 +121,23 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
                 <span className="field__error">{thresholdForm.formState.errors.minStock.message}</span>
               ) : null}
             </label>
-            <button className="button button--primary" type="submit" disabled={!selectedMaterialId}>
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={!selectedMaterialId || thresholdActionState.status === "loading"}
+            >
               Guardar umbral
             </button>
-            <button className="button button--ghost" type="button" onClick={actions.deleteThreshold} disabled={!selectedMaterialId || !threshold}>
+            <button
+              className="button button--ghost"
+              type="button"
+              onClick={actions.deleteThreshold}
+              disabled={!selectedMaterialId || !threshold || thresholdActionState.status === "loading"}
+            >
               Eliminar umbral
             </button>
+            {thresholdActionState.status === "loading" && <p className="muted">Actualizando umbral...</p>}
+            {thresholdActionState.status === "error" && <p className="error">{thresholdActionState.message}</p>}
           </form>
         </div>
 
@@ -172,9 +193,15 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
                 {...movementForm.register("reason")}
               />
             </label>
-            <button className="button button--primary" type="submit" disabled={!selectedMaterialId}>
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={!selectedMaterialId || movementActionState.status === "loading"}
+            >
               Registrar
             </button>
+            {movementActionState.status === "loading" && <p className="muted">Registrando movimiento...</p>}
+            {movementActionState.status === "error" && <p className="error">{movementActionState.message}</p>}
           </form>
         </div>
       </div>
