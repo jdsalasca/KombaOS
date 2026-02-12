@@ -1,14 +1,14 @@
-Git flow
-- Trabaja en ramas feature/* desde develop.
-- Abre PRs a develop con revisión.
-- No mezcles refactors con cambios funcionales.
-- Master solo para releases.
-- Sincroniza master → develop con PR automático.
+Git workflow
+- Work on feature/* branches from develop.
+- Open PRs into develop with review.
+- Do not mix refactors with functional changes.
+- Master is for releases only.
+- Master → develop backport happens via automated PR.
 
 Do
-- Commits descriptivos y coherentes con el cambio.
-- PRs con resumen, alcance y validación ejecutada.
+- Use descriptive commits aligned with the change.
+- Include summary, scope, and validation in PRs.
 
 Don’t
-- No hagas push directo a master.
-- No cierres PRs sin validar.
+- Don’t push directly to master.
+- Don’t merge PRs without validation.

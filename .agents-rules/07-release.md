@@ -1,12 +1,12 @@
 Releases
-- Releases desde master únicamente.
-- Tag generado por workflow.
-- Planifica release cuando master difiera de develop.
-- Verifica adjuntos EXE en la Release.
+- Releases are cut from master only.
+- Tags are created by the workflow.
+- Plan a release when master diverges from develop.
+- Verify EXE artifacts are attached to the Release.
 
 Do
-- Revisa changelog y notas de release.
-- Asegura que develop reciba el backport automático.
+- Review changelog and release notes.
+- Ensure develop receives the automated backport.
 
 Don’t
-- No publiques releases con tests pendientes.
+- Don’t publish releases with failing tests.
