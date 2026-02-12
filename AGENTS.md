@@ -1,42 +1,42 @@
 # AGENTS.md
 
-Guía para agentes de código. Mantén este documento conciso y orientado a ejecución.
+Agent guide for this repository. Keep it concise, actionable, and aligned with the codebase.
 
-## Ramas
+## Branches
 
-- develop: rama base para el trabajo diario
-- release/*: preparación de releases desde develop
-- master: solo para releases publicados
+- develop: main integration branch
+- release/*: release preparation from develop
+- master: published releases only
 
-## Flujo de trabajo
+## Workflow
 
-1. Crear ramas de feature desde develop con el formato feature/<ticket>-<resumen>
-2. Abrir PR descriptivo hacia develop
-3. Merge por PR luego de revisión
-4. Crear rama release/<version> desde develop cuando el milestone tenga valor
-5. Abrir PR release/<version> -> master con checklist de release
-6. Crear el release desde master y etiquetar v<version>
-7. Volver a develop y continuar ciclo
+1. Create feature branches from develop: feature/<ticket>-<summary>
+2. Open a descriptive PR into develop
+3. Merge via PR after review
+4. Create release/<version> from develop when the milestone has real value
+5. Open PR release/<version> -> master with the release checklist
+6. Publish the release from master and tag v<version>
+7. Continue work on develop
 
 ## Releases
 
-- Se generan al cerrar un milestone con valor real para compartir
-- El release se hace desde master con tag v<version>
+- Releases are cut from master only
+- Tags are created by the release workflow
 
-## Principios de código
+## Code principles
 
-- Modularidad por dominio y responsabilidad
-- Clases pequeñas con objetivos claros
-- Métodos cortos con una sola intención
-- Composición sobre herencia, evita super clases
-- Depender de interfaces, no de implementaciones
+- Modular by domain and responsibility
+- Small classes with a clear objective
+- Short methods with one intent
+- Prefer composition over inheritance, avoid superclasses
+- Depend on interfaces, not implementations
 
-## Calidad
+## Quality
 
 - Frontend: cd frontend && npm run lint, npm run test, npm run build
 - Backend: cd backend && ./mvnw test
 
-## Comandos rápidos
+## Quick commands
 
 - Frontend unit tests: cd frontend && npm run test
 - Frontend lint: cd frontend && npm run lint
@@ -45,26 +45,33 @@ Guía para agentes de código. Mantén este documento conciso y orientado a ejec
 
 ## Do / Don’t
 
-- Do: usa patrones y estructuras existentes.
-- Do: escribe módulos pequeños y especializados.
-- Don’t: inventes APIs o rutas sin buscar primero.
-- Don’t: agregues dependencias pesadas sin aprobación.
+- Do: follow existing patterns and file layout
+- Do: keep changes small and reviewable
+- Don’t: invent APIs or routes without searching first
+- Don’t: add heavy dependencies without approval
 
-## Prácticas para agentes
+## Multi-agent coordination
 
-- Mantén cambios pequeños y revisables.
-- Evita reescrituras masivas sin pedido explícito.
-- No agregues dependencias nuevas sin aprobación.
-- Prefiere editar archivos existentes antes que crear nuevos.
-- Verifica rutas y convenciones mirando el código real.
-- Si mueves imports o carpetas, valida con lint y build.
+- Announce the files you are touching and avoid overlapping edits
+- Prefer sequential merges instead of parallel rewrites
+- Rebase or merge frequently to reduce conflicts
+- Do not push other agents’ local changes
+- Keep PRs scoped to one logical change
 
-## Referencias
+## Agent practices
 
-- .agents-rules/01-principios.md
-- .agents-rules/02-clases-metodos.md
+- Prefer editing existing files over creating new ones
+- Avoid repository-wide rewrites unless explicitly requested
+- Validate lint and build after moving imports or folders
+- Confirm conventions from the real code before implementing
+
+## References
+
+- .agents-rules/00-multi-agent.md
+- .agents-rules/01-principles.md
+- .agents-rules/02-classes-methods.md
 - .agents-rules/03-git-flow.md
-- .agents-rules/04-calidad.md
+- .agents-rules/04-quality.md
 - .agents-rules/05-frontend.md
 - .agents-rules/06-backend.md
 - .agents-rules/07-release.md

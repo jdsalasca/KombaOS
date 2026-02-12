@@ -1,12 +1,12 @@
 Backend
-- Controladores delgados, servicios con lógica.
-- DTOs claros para entradas y salidas.
-- Validación en límites del sistema.
-- Evita dependencias directas entre capas.
+- Keep controllers thin and services focused on logic.
+- Use clear DTOs for inputs and outputs.
+- Validate at system boundaries.
+- Avoid direct coupling between layers.
 
 Do
-- Maneja errores con excepciones consistentes.
-- Mantén contratos estables entre capas.
+- Handle errors with consistent exceptions.
+- Keep stable contracts between layers.
 
 Don’t
-- No mezcles persistencia con reglas de negocio.
+- Don’t mix persistence with business rules.
