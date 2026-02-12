@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import "./App.css";
 import { InventoryPanel } from "./features/inventory/InventoryPanel";
 import { MaterialsPanel } from "./features/materials/MaterialsPanel";
@@ -16,10 +17,12 @@ function App() {
   const { materials, materialsState, filtersDraft, setFiltersDraft, actions } = useMaterials();
   const [userSelectedMaterialId, setUserSelectedMaterialId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loginName, setLoginName] = useState("");
-  const [loginOrg, setLoginOrg] = useState("");
-  const [loginError, setLoginError] = useState("");
+  const [userProfile, setUserProfile] = useState({ name: "", organization: "" });
   const [activeSection, setActiveSection] = useState("inicio");
+  const loginForm = useForm<{ name: string; organization: string }>({
+    defaultValues: { name: "", organization: "" },
+    mode: "onSubmit",
+  });
 
   const selectedMaterialId = useMemo(() => {
     if (!materials.length) return null;
@@ -53,36 +56,37 @@ function App() {
             </div>
             <form
               className="form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const trimmedName = loginName.trim();
-                if (!trimmedName.length) {
-                  setLoginError("Ingresa tu nombre para continuar.");
-                  return;
-                }
-                setLoginError("");
+              onSubmit={loginForm.handleSubmit((values) => {
+                setUserProfile({
+                  name: values.name.trim(),
+                  organization: values.organization.trim(),
+                });
                 setIsAuthenticated(true);
-              }}
+              })}
             >
               <label className="field">
                 <span className="field__label">Nombre</span>
                 <input
-                  className="field__input"
-                  value={loginName}
-                  onChange={(event) => setLoginName(event.target.value)}
+                  className={
+                    loginForm.formState.errors.name ? "field__input field__input--error" : "field__input"
+                  }
                   placeholder="Ej. Ana Pérez"
+                  {...loginForm.register("name", {
+                    required: "Ingresa tu nombre para continuar.",
+                  })}
                 />
               </label>
               <label className="field">
                 <span className="field__label">Taller o empresa</span>
                 <input
                   className="field__input"
-                  value={loginOrg}
-                  onChange={(event) => setLoginOrg(event.target.value)}
                   placeholder="Ej. Taller Andino"
+                  {...loginForm.register("organization")}
                 />
               </label>
-              {loginError ? <p className="field__error">{loginError}</p> : null}
+              {loginForm.formState.errors.name ? (
+                <p className="field__error">{loginForm.formState.errors.name.message}</p>
+              ) : null}
               <button className="button button--primary" type="submit">
                 Entrar al sistema
               </button>
@@ -116,14 +120,14 @@ function App() {
             ))}
           </nav>
           <div className="sidebar__footer">
-            <span>Usuario: {loginName.trim() || "Operador"}</span>
-            <span>{loginOrg.trim() || "Sin empresa definida"}</span>
+            <span>Usuario: {userProfile.name || "Operador"}</span>
+            <span>{userProfile.organization || "Sin empresa definida"}</span>
           </div>
         </aside>
         <div className="main">
           <div className="topbar">
             <div>
-              <h2 className="topbar__title">Hola, {loginName.trim() || "operador"}</h2>
+              <h2 className="topbar__title">Hola, {userProfile.name || "operador"}</h2>
               <p className="topbar__subtitle">Revisa el estado del inventario y gestiona tu catálogo.</p>
             </div>
             <div className="topbar__actions">
@@ -134,9 +138,8 @@ function App() {
                 type="button"
                 onClick={() => {
                   setIsAuthenticated(false);
-                  setLoginName("");
-                  setLoginOrg("");
-                  setLoginError("");
+                  setUserProfile({ name: "", organization: "" });
+                  loginForm.reset({ name: "", organization: "" });
                 }}
               >
                 Salir

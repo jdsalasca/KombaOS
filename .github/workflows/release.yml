@@ -9,6 +9,7 @@ on:
   release:
     types: [published]
   push:
+    branches: ["master"]
     tags:
       - "v*"
 
@@ -18,10 +19,26 @@ jobs:
     permissions:
       contents: write
     if: github.event_name != 'release' || github.event.release.target_commitish == 'master'
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Preparar tag de release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        shell: pwsh
+        run: |
+          $tag = "v$((Get-Date).ToString('yyyy.MM.dd')).${{ github.run_number }}"
+          "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          $exists = git tag --list $tag
+          if (-not $exists) {
+            git tag -a $tag -m "release $tag"
+            git push origin $tag
+          }
 
       - name: Validate tag is on master
         if: github.event_name == 'push'
@@ -45,13 +62,24 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Instalar WiX
+        shell: pwsh
+        run: |
+          choco install wixtoolset --no-progress -y
+          $wixPath = "C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+          if (Test-Path $wixPath) {
+            $env:Path = "$env:Path;$wixPath"
+          }
+
       - name: Build EXE (jpackage)
         shell: pwsh
-        run: .\\software\\packaging\\windows\\package.ps1 -Environment local -SmokeTest
+        run: |
+          $version = $env:RELEASE_TAG.TrimStart('v')
+          .\software\packaging\windows\package.ps1 -Environment local -PackageType exe -AppVersion $version
 
       - name: Zip EXE
         shell: pwsh
-        run: Compress-Archive -Force -Path .\\dist\\KombaOS -DestinationPath .\\dist\\KombaOS-windows.zip
+        run: Compress-Archive -Force -Path .\dist\KombaOS -DestinationPath .\dist\KombaOS-windows.zip
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
@@ -60,9 +88,14 @@ jobs:
           path: dist/**
 
       - name: Publish GitHub Release asset
-        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'release' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/KombaOS-windows.zip
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          files: |
+            dist/KombaOS-windows.zip
+            dist/*.exe
+            dist/*.msi
           body_path: CHANGELOG.md
-          name: ${{ github.ref_name }}
+          name: ${{ env.RELEASE_TAG }}

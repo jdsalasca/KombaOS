@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import type { Material } from "../../lib/types";
 import type { MaterialsFiltersState } from "./useMaterials";
 import type { LoadState } from "../../lib/types";
@@ -60,86 +61,43 @@ export function MaterialsPanel({
     currency: string;
   };
 
-  const [createName, setCreateName] = useState("");
-  const [createUnit, setCreateUnit] = useState("");
-  const [createSupplier, setCreateSupplier] = useState("");
-  const [createOrigin, setCreateOrigin] = useState("");
-  const [createCertified, setCreateCertified] = useState(false);
-  const [createCostCents, setCreateCostCents] = useState("");
-  const [createCurrency, setCreateCurrency] = useState("COP");
-  const [createError, setCreateError] = useState("");
-  const [updateError, setUpdateError] = useState("");
+  const createForm = useForm<MaterialFormInput>({
+    defaultValues: {
+      name: "",
+      unit: "",
+      supplier: "",
+      origin: "",
+      certified: false,
+      costCents: "",
+      currency: "COP",
+    },
+    mode: "onBlur",
+  });
 
-  function validateMaterialInput(input: MaterialFormInput) {
-    if (!input.name.trim().length) return "Ingresa el nombre del material.";
-    if (!input.unit.trim().length) return "Ingresa la unidad del material.";
-    const costRaw = input.costCents.trim();
-    if (costRaw.length) {
-      const parsed = Number(costRaw);
-      if (!Number.isFinite(parsed) || parsed < 0) return "El costo debe ser un número válido.";
-    }
-    const currencyRaw = input.currency.trim();
-    if (currencyRaw.length && !/^[A-Za-z]{3}$/.test(currencyRaw)) return "La moneda debe tener 3 letras.";
-    return "";
-  }
+  const updateForm = useForm<MaterialFormInput>({
+    defaultValues: {
+      name: "",
+      unit: "",
+      supplier: "",
+      origin: "",
+      certified: false,
+      costCents: "",
+      currency: "COP",
+    },
+    mode: "onBlur",
+  });
 
-  async function onCreateMaterial(e: React.FormEvent) {
-    e.preventDefault();
-    const validation = validateMaterialInput({
-      name: createName,
-      unit: createUnit,
-      supplier: createSupplier,
-      origin: createOrigin,
-      certified: createCertified,
-      costCents: createCostCents,
-      currency: createCurrency,
+  useEffect(() => {
+    updateForm.reset({
+      name: selectedMaterial?.name ?? "",
+      unit: selectedMaterial?.unit ?? "",
+      supplier: selectedMaterial?.supplier ?? "",
+      origin: selectedMaterial?.origin ?? "",
+      certified: selectedMaterial?.certified ?? false,
+      costCents: selectedMaterial?.costCents != null ? String(selectedMaterial.costCents) : "",
+      currency: selectedMaterial?.currency ?? "COP",
     });
-    if (validation) {
-      setCreateError(validation);
-      return;
-    }
-    setCreateError("");
-    await actions.create({
-      name: createName,
-      unit: createUnit,
-      supplier: createSupplier,
-      origin: createOrigin,
-      certified: createCertified,
-      costCents: createCostCents,
-      currency: createCurrency,
-    });
-    setCreateName("");
-    setCreateUnit("");
-    setCreateSupplier("");
-    setCreateOrigin("");
-    setCreateCertified(false);
-    setCreateCostCents("");
-    setCreateCurrency("COP");
-  }
-
-  async function onUpdateMaterial(e: React.FormEvent) {
-    e.preventDefault();
-    if (!selectedMaterialId) return;
-    const form = e.currentTarget as HTMLFormElement;
-    const data = new FormData(form);
-    const certifiedInput = form.elements.namedItem("certified") as HTMLInputElement | null;
-    const input = {
-      name: String(data.get("name") ?? ""),
-      unit: String(data.get("unit") ?? ""),
-      supplier: String(data.get("supplier") ?? ""),
-      origin: String(data.get("origin") ?? ""),
-      certified: certifiedInput?.checked ?? false,
-      costCents: String(data.get("costCents") ?? ""),
-      currency: String(data.get("currency") ?? ""),
-    };
-    const validation = validateMaterialInput(input);
-    if (validation) {
-      setUpdateError(validation);
-      return;
-    }
-    setUpdateError("");
-    await actions.update(selectedMaterialId, input);
-  }
+  }, [selectedMaterial, updateForm]);
 
   async function onDeleteMaterial() {
     if (!selectedMaterialId) return;
@@ -169,26 +127,60 @@ export function MaterialsPanel({
       <div className="form">
         <div>
           <h3 className="panel__title">Crear material</h3>
-          <form onSubmit={onCreateMaterial} className="formRow">
+          <form
+            onSubmit={createForm.handleSubmit(async (values) => {
+              await actions.create({
+                name: values.name.trim(),
+                unit: values.unit.trim(),
+                supplier: values.supplier.trim(),
+                origin: values.origin.trim(),
+                certified: values.certified,
+                costCents: values.costCents.trim(),
+                currency: values.currency.trim().toUpperCase(),
+              });
+              createForm.reset({
+                name: "",
+                unit: "",
+                supplier: "",
+                origin: "",
+                certified: false,
+                costCents: "",
+                currency: "COP",
+              });
+            })}
+            className="formRow"
+          >
             <label className="field">
               <span className="field__label">Nombre</span>
               <input
-                className="field__input"
+                className={
+                  createForm.formState.errors.name ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Nombre material"
                 placeholder="Ej. Algodón"
-                value={createName}
-                onChange={(e) => setCreateName(e.target.value)}
+                {...createForm.register("name", {
+                  required: "Ingresa el nombre del material.",
+                })}
               />
+              {createForm.formState.errors.name ? (
+                <span className="field__error">{createForm.formState.errors.name.message}</span>
+              ) : null}
             </label>
             <label className="field">
               <span className="field__label">Unidad</span>
               <input
-                className="field__input"
+                className={
+                  createForm.formState.errors.unit ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Unidad material"
                 placeholder="Ej. kg"
-                value={createUnit}
-                onChange={(e) => setCreateUnit(e.target.value)}
+                {...createForm.register("unit", {
+                  required: "Ingresa la unidad del material.",
+                })}
               />
+              {createForm.formState.errors.unit ? (
+                <span className="field__error">{createForm.formState.errors.unit.message}</span>
+              ) : null}
             </label>
             <label className="field">
               <span className="field__label">Proveedor</span>
@@ -196,8 +188,7 @@ export function MaterialsPanel({
                 className="field__input"
                 aria-label="Proveedor material"
                 placeholder="Ej. Proveedor Andes"
-                value={createSupplier}
-                onChange={(e) => setCreateSupplier(e.target.value)}
+                {...createForm.register("supplier")}
               />
             </label>
             <label className="field">
@@ -206,38 +197,58 @@ export function MaterialsPanel({
                 className="field__input"
                 aria-label="Origen material"
                 placeholder="Ej. Colombia"
-                value={createOrigin}
-                onChange={(e) => setCreateOrigin(e.target.value)}
+                {...createForm.register("origin")}
               />
             </label>
             <label className="field">
               <span className="field__label">Costo</span>
               <input
-                className="field__input"
+                className={
+                  createForm.formState.errors.costCents ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Costo material (centavos)"
                 placeholder="Ej. 1200"
                 inputMode="numeric"
-                value={createCostCents}
-                onChange={(e) => setCreateCostCents(e.target.value)}
+                {...createForm.register("costCents", {
+                  validate: (value) => {
+                    const trimmed = value.trim();
+                    if (!trimmed) return true;
+                    const parsed = Number(trimmed);
+                    if (!Number.isFinite(parsed) || parsed < 0) {
+                      return "El costo debe ser un número válido.";
+                    }
+                    return true;
+                  },
+                })}
               />
               <span className="field__hint">Valor en centavos.</span>
+              {createForm.formState.errors.costCents ? (
+                <span className="field__error">{createForm.formState.errors.costCents.message}</span>
+              ) : null}
             </label>
             <label className="field">
               <span className="field__label">Moneda</span>
               <input
-                className="field__input"
+                className={
+                  createForm.formState.errors.currency ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Moneda material"
                 placeholder="COP"
-                value={createCurrency}
-                onChange={(e) => setCreateCurrency(e.target.value)}
+                {...createForm.register("currency", {
+                  required: "Ingresa la moneda.",
+                  validate: (value) =>
+                    /^[A-Za-z]{3}$/.test(value.trim()) || "La moneda debe tener 3 letras.",
+                })}
               />
+              {createForm.formState.errors.currency ? (
+                <span className="field__error">{createForm.formState.errors.currency.message}</span>
+              ) : null}
             </label>
             <label className="field inline">
               <input
                 aria-label="Material certificado"
                 type="checkbox"
-                checked={createCertified}
-                onChange={(e) => setCreateCertified(e.target.checked)}
+                {...createForm.register("certified")}
               />
               Certificado
             </label>
@@ -245,7 +256,6 @@ export function MaterialsPanel({
               Crear material
             </button>
           </form>
-          {createError ? <p className="field__error">{createError}</p> : null}
         </div>
 
         <div>
@@ -332,29 +342,56 @@ export function MaterialsPanel({
 
       <div>
         <h3 className="panel__title">Editar material</h3>
-        <form key={selectedMaterialId ?? "none"} onSubmit={onUpdateMaterial} className="formCol">
+        <form
+          key={selectedMaterialId ?? "none"}
+          onSubmit={updateForm.handleSubmit(async (values) => {
+            if (!selectedMaterialId) return;
+            await actions.update(selectedMaterialId, {
+              name: values.name.trim(),
+              unit: values.unit.trim(),
+              supplier: values.supplier.trim(),
+              origin: values.origin.trim(),
+              certified: values.certified,
+              costCents: values.costCents.trim(),
+              currency: values.currency.trim().toUpperCase(),
+            });
+          })}
+          className="formCol"
+        >
           <div className="formRow">
             <label className="field">
               <span className="field__label">Nombre</span>
               <input
-                className="field__input"
+                className={
+                  updateForm.formState.errors.name ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Editar nombre material"
                 placeholder="Nombre"
-                name="name"
-                defaultValue={selectedMaterial?.name ?? ""}
                 disabled={!selectedMaterialId}
+                {...updateForm.register("name", {
+                  required: "Ingresa el nombre del material.",
+                })}
               />
+              {updateForm.formState.errors.name ? (
+                <span className="field__error">{updateForm.formState.errors.name.message}</span>
+              ) : null}
             </label>
             <label className="field">
               <span className="field__label">Unidad</span>
               <input
-                className="field__input"
+                className={
+                  updateForm.formState.errors.unit ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Editar unidad material"
                 placeholder="Unidad"
-                name="unit"
-                defaultValue={selectedMaterial?.unit ?? ""}
                 disabled={!selectedMaterialId}
+                {...updateForm.register("unit", {
+                  required: "Ingresa la unidad del material.",
+                })}
               />
+              {updateForm.formState.errors.unit ? (
+                <span className="field__error">{updateForm.formState.errors.unit.message}</span>
+              ) : null}
             </label>
             <label className="field">
               <span className="field__label">Proveedor</span>
@@ -362,9 +399,8 @@ export function MaterialsPanel({
                 className="field__input"
                 aria-label="Editar proveedor material"
                 placeholder="Proveedor"
-                name="supplier"
-                defaultValue={selectedMaterial?.supplier ?? ""}
                 disabled={!selectedMaterialId}
+                {...updateForm.register("supplier")}
               />
             </label>
             <label className="field">
@@ -373,46 +409,65 @@ export function MaterialsPanel({
                 className="field__input"
                 aria-label="Editar origen material"
                 placeholder="Origen"
-                name="origin"
-                defaultValue={selectedMaterial?.origin ?? ""}
                 disabled={!selectedMaterialId}
+                {...updateForm.register("origin")}
               />
             </label>
             <label className="field">
               <span className="field__label">Costo</span>
               <input
-                className="field__input"
+                className={
+                  updateForm.formState.errors.costCents ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Editar costo material (centavos)"
                 placeholder="Costo (centavos)"
                 inputMode="numeric"
-                name="costCents"
-                defaultValue={selectedMaterial?.costCents != null ? String(selectedMaterial.costCents) : ""}
                 disabled={!selectedMaterialId}
+                {...updateForm.register("costCents", {
+                  validate: (value) => {
+                    const trimmed = value.trim();
+                    if (!trimmed) return true;
+                    const parsed = Number(trimmed);
+                    if (!Number.isFinite(parsed) || parsed < 0) {
+                      return "El costo debe ser un número válido.";
+                    }
+                    return true;
+                  },
+                })}
               />
+              {updateForm.formState.errors.costCents ? (
+                <span className="field__error">{updateForm.formState.errors.costCents.message}</span>
+              ) : null}
             </label>
             <label className="field">
               <span className="field__label">Moneda</span>
               <input
-                className="field__input"
+                className={
+                  updateForm.formState.errors.currency ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Editar moneda costo material"
                 placeholder="COP"
-                name="currency"
-                defaultValue={selectedMaterial?.currency ?? "COP"}
                 disabled={!selectedMaterialId}
+                {...updateForm.register("currency", {
+                  required: "Ingresa la moneda.",
+                  validate: (value) =>
+                    /^[A-Za-z]{3}$/.test(value.trim()) || "La moneda debe tener 3 letras.",
+                })}
               />
+              {updateForm.formState.errors.currency ? (
+                <span className="field__error">{updateForm.formState.errors.currency.message}</span>
+              ) : null}
             </label>
             <label className="field inline">
               <input
                 aria-label="Editar material certificado"
                 type="checkbox"
-                name="certified"
-                defaultChecked={selectedMaterial?.certified ?? false}
                 disabled={!selectedMaterialId}
+                {...updateForm.register("certified")}
               />
               Certificado
             </label>
           </div>
-          {updateError ? <p className="field__error">{updateError}</p> : null}
           <div className="formRow">
             <button className="button button--primary" type="submit" disabled={!selectedMaterialId}>
               Guardar cambios

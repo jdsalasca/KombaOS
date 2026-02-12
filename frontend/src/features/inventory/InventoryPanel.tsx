@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
 import type { InventoryMovementType, Material } from "../../lib/types";
 import { useInventory } from "./useInventory";
 
@@ -11,16 +12,24 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
   const { stock, stockState, threshold, movements, movementsState, lowStockAlerts, lowStockAlertsState, actions } =
     useInventory(selectedMaterialId);
 
-  const [createMoveType, setCreateMoveType] = useState<InventoryMovementType>("IN");
-  const [createMoveQty, setCreateMoveQty] = useState("");
-  const [createMoveReason, setCreateMoveReason] = useState("");
-  const [thresholdError, setThresholdError] = useState("");
-  const [movementError, setMovementError] = useState("");
+  const thresholdForm = useForm<{ minStock: string }>({
+    defaultValues: { minStock: "" },
+    mode: "onBlur",
+  });
+
+  const movementForm = useForm<{ type: InventoryMovementType; quantity: string; reason: string }>({
+    defaultValues: { type: "IN", quantity: "", reason: "" },
+    mode: "onBlur",
+  });
 
   const hasLowStockAlert = useMemo(() => {
     if (!selectedMaterialId) return false;
     return lowStockAlerts.some((a) => a.materialId === selectedMaterialId);
   }, [lowStockAlerts, selectedMaterialId]);
+
+  useEffect(() => {
+    thresholdForm.reset({ minStock: threshold ? String(threshold.minStock) : "" });
+  }, [threshold, thresholdForm]);
 
   return (
     <div className="card panel">
@@ -61,35 +70,37 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
           <h3 className="panel__title">Definir stock mínimo</h3>
           <form
             key={selectedMaterialId ?? "none"}
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const form = e.currentTarget as HTMLFormElement;
-              const data = new FormData(form);
-              const value = String(data.get("minStock") ?? "").trim();
-              if (!value.length) {
-                setThresholdError("Ingresa un valor para el stock mínimo.");
-                return;
-              }
-              const parsed = Number(value);
-              if (!Number.isFinite(parsed) || parsed < 0) {
-                setThresholdError("El stock mínimo debe ser un número válido.");
-                return;
-              }
-              setThresholdError("");
-              await actions.saveThreshold(value);
-            }}
+            onSubmit={thresholdForm.handleSubmit(async (values) => {
+              await actions.saveThreshold(values.minStock.trim());
+            })}
             className="formRow"
           >
             <label className="field">
               <span className="field__label">Stock mínimo</span>
               <input
-                className="field__input"
+                className={
+                  thresholdForm.formState.errors.minStock
+                    ? "field__input field__input--error"
+                    : "field__input"
+                }
                 aria-label="Stock mínimo"
                 inputMode="decimal"
-                name="minStock"
-                defaultValue={threshold ? String(threshold.minStock) : ""}
                 disabled={!selectedMaterialId}
+                {...thresholdForm.register("minStock", {
+                  required: "Ingresa un valor para el stock mínimo.",
+                  validate: (value) => {
+                    const trimmed = value.trim();
+                    const parsed = Number(trimmed);
+                    if (!Number.isFinite(parsed) || parsed < 0) {
+                      return "El stock mínimo debe ser un número válido.";
+                    }
+                    return true;
+                  },
+                })}
               />
+              {thresholdForm.formState.errors.minStock ? (
+                <span className="field__error">{thresholdForm.formState.errors.minStock.message}</span>
+              ) : null}
             </label>
             <button className="button button--primary" type="submit" disabled={!selectedMaterialId}>
               Guardar umbral
@@ -98,33 +109,21 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
               Eliminar umbral
             </button>
           </form>
-          {thresholdError ? <p className="field__error">{thresholdError}</p> : null}
         </div>
 
         <div>
           <h3 className="panel__title">Registrar movimiento</h3>
           <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (!createMoveQty.trim().length) {
-                setMovementError("Indica la cantidad a mover.");
-                return;
-              }
-              const parsed = Number(createMoveQty.trim());
-              if (!Number.isFinite(parsed) || parsed <= 0) {
-                setMovementError("La cantidad debe ser mayor a cero.");
-                return;
-              }
-              setMovementError("");
-              await actions.createMovement(createMoveType, createMoveQty, createMoveReason);
-              setCreateMoveQty("");
-              setCreateMoveReason("");
-            }}
+            onSubmit={movementForm.handleSubmit(async (values) => {
+              if (!selectedMaterialId) return;
+              await actions.createMovement(values.type, values.quantity.trim(), values.reason.trim());
+              movementForm.reset({ type: "IN", quantity: "", reason: "" });
+            })}
             className="formRow"
           >
             <label className="field">
               <span className="field__label">Tipo</span>
-              <select value={createMoveType} onChange={(e) => setCreateMoveType(e.target.value as InventoryMovementType)}>
+              <select disabled={!selectedMaterialId} {...movementForm.register("type")}>
                 <option value="IN">Ingreso</option>
                 <option value="OUT">Salida</option>
                 <option value="ADJUST">Ajuste</option>
@@ -133,12 +132,26 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
             <label className="field">
               <span className="field__label">Cantidad</span>
               <input
-                className="field__input"
+                className={
+                  movementForm.formState.errors.quantity ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Cantidad movimiento"
-                value={createMoveQty}
-                onChange={(e) => setCreateMoveQty(e.target.value)}
                 inputMode="decimal"
+                disabled={!selectedMaterialId}
+                {...movementForm.register("quantity", {
+                  required: "Indica la cantidad a mover.",
+                  validate: (value) => {
+                    const parsed = Number(value.trim());
+                    if (!Number.isFinite(parsed) || parsed <= 0) {
+                      return "La cantidad debe ser mayor a cero.";
+                    }
+                    return true;
+                  },
+                })}
               />
+              {movementForm.formState.errors.quantity ? (
+                <span className="field__error">{movementForm.formState.errors.quantity.message}</span>
+              ) : null}
             </label>
             <label className="field">
               <span className="field__label">Motivo</span>
@@ -146,15 +159,14 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
                 className="field__input"
                 aria-label="Motivo movimiento"
                 placeholder="Motivo (opcional)"
-                value={createMoveReason}
-                onChange={(e) => setCreateMoveReason(e.target.value)}
+                disabled={!selectedMaterialId}
+                {...movementForm.register("reason")}
               />
             </label>
             <button className="button button--primary" type="submit" disabled={!selectedMaterialId}>
               Registrar
             </button>
           </form>
-          {movementError ? <p className="field__error">{movementError}</p> : null}
         </div>
       </div>
 
