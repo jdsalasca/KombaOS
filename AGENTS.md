@@ -20,3 +20,26 @@
 
 - Se generan al cerrar un milestone con valor real para compartir
 - El release se hace desde master con tag v<version>
+
+## Principios de código
+
+- Modularidad por dominio y responsabilidad
+- Clases pequeñas con objetivos claros
+- Métodos cortos con una sola intención
+- Composición sobre herencia, evita super clases
+- Depender de interfaces, no de implementaciones
+
+## Calidad
+
+- Frontend: npm run lint, npm run test, npm run build
+- Backend: ./mvnw test
+
+## Referencias
+
+- .agents-rules/01-principios.md
+- .agents-rules/02-clases-metodos.md
+- .agents-rules/03-git-flow.md
+- .agents-rules/04-calidad.md
+- .agents-rules/05-frontend.md
+- .agents-rules/06-backend.md
+- .agents-rules/07-release.md
