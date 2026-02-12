@@ -13,6 +13,7 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
     stock,
     stockState,
     threshold,
+    thresholdState,
     movements,
     movementsState,
     lowStockAlerts,
@@ -36,6 +37,12 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
     if (!selectedMaterialId) return false;
     return lowStockAlerts.some((a) => a.materialId === selectedMaterialId);
   }, [lowStockAlerts, selectedMaterialId]);
+
+  const isReloading =
+    stockState.status === "loading" ||
+    thresholdState.status === "loading" ||
+    movementsState.status === "loading" ||
+    lowStockAlertsState.status === "loading";
 
   useEffect(() => {
     thresholdForm.reset({ minStock: threshold ? String(threshold.minStock) : "" });
@@ -63,6 +70,17 @@ export function InventoryPanel({ selectedMaterial, selectedMaterialId }: Props) 
       )}
 
       <p className="muted">Material activo: {selectedMaterial ? `${selectedMaterial.name} (${selectedMaterial.unit})` : "—"}</p>
+
+      <div className="formRow">
+        <button
+          className="button button--ghost"
+          type="button"
+          onClick={actions.reloadAll}
+          disabled={!selectedMaterialId || isReloading}
+        >
+          Recargar datos
+        </button>
+      </div>
 
       <div className="kv">
         <div className="kv__row">

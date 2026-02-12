@@ -15,6 +15,7 @@ type Props = {
   actions: {
     applyFilters: () => void;
     clearFilters: () => void;
+    reload: () => void;
     create: (input: {
       name: string;
       unit: string;
@@ -122,6 +123,17 @@ export function MaterialsPanel({
           <p className="panel__subtitle">Crea y selecciona insumos para operar el inventario.</p>
         </div>
         <span className="pill">{materials.length} registrados</span>
+      </div>
+
+      <div className="formRow">
+        <button
+          className="button button--ghost"
+          type="button"
+          onClick={actions.reload}
+          disabled={materialsState.status === "loading"}
+        >
+          Recargar lista
+        </button>
       </div>
 
       <div className="form">
