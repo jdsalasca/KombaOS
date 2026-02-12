@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 15_000 },
   use: {
-    baseURL: "http://localhost:8080",
+    baseURL: "http://localhost:8081",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -13,7 +13,7 @@ export default defineConfig({
   webServer: {
     command:
       "pwsh -NoProfile -File e2e/start-fullstack.ps1",
-    url: "http://localhost:8080/actuator/health",
+    url: "http://localhost:8081/actuator/health",
     timeout: 180_000,
     reuseExistingServer: false,
   },
