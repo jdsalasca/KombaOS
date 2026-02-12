@@ -11,12 +11,13 @@ Agent guide for this repository. Keep it concise, actionable, and aligned with t
 ## Workflow
 
 1. Create feature branches from develop: feature/<ticket>-<summary>
-2. Open a descriptive PR into develop
-3. Merge via PR after review
-4. Create release/<version> from develop when the milestone has real value
-5. Open PR release/<version> -> master with the release checklist
-6. Publish the release from master and tag v<version>
-7. Continue work on develop
+1. Open a descriptive PR into develop
+1. Merge the PR after review and validation
+1. Merge is mandatory; do not leave work partially integrated
+1. Create release/<version> from develop when the milestone has real value
+1. Open PR release/<version> -> master with the release checklist
+1. Publish the release from master and tag v<version>
+1. Continue work on develop
 
 ## Releases
 
@@ -57,6 +58,7 @@ Agent guide for this repository. Keep it concise, actionable, and aligned with t
 - Rebase or merge frequently to reduce conflicts
 - Do not push other agents’ local changes
 - Keep PRs scoped to one logical change
+- Merge all feature work into develop to avoid partial delivery
 
 ## Agent practices
 
