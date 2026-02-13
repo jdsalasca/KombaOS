@@ -23,6 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.release.tag_name || github.ref }}
 
       - name: Preparar tag de release
         if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master'
@@ -69,15 +70,76 @@ jobs:
             $env:Path = "$env:Path;$wixPath"
           }
 
-      - name: Build EXE (jpackage)
+      - name: Smoke test (app-image)
         shell: pwsh
         run: |
           $version = $env:RELEASE_TAG.TrimStart('v')
-          .\software\packaging\windows\package.ps1 -Environment local -PackageType exe -AppVersion $version
+          .\software\packaging\windows\package.ps1 -Environment local -PackageType app-image -AppVersion $version -SmokeTest -OutputDir dist\release\local
 
-      - name: Zip EXE
+      - name: Build EXE local (jpackage)
         shell: pwsh
-        run: Compress-Archive -Force -Path .\dist\KombaOS -DestinationPath .\dist\KombaOS-windows.zip
+        run: |
+          $version = $env:RELEASE_TAG.TrimStart('v')
+          .\software\packaging\windows\package.ps1 -Environment local -PackageType exe -AppVersion $version -OutputDir dist\release\local
+
+      - name: Build EXE cloud (jpackage)
+        shell: pwsh
+        run: |
+          $version = $env:RELEASE_TAG.TrimStart('v')
+          .\software\packaging\windows\package.ps1 -Environment cloud -PackageType exe -AppVersion $version -OutputDir dist\release\cloud
+
+      - name: Preparar artefactos para usuarios finales
+        shell: pwsh
+        run: |
+          $dist = Join-Path $PWD "dist"
+          $localDist = Join-Path $dist "release\local"
+          $cloudDist = Join-Path $dist "release\cloud"
+
+          $localExe = Get-ChildItem -Path $localDist -Filter "*.exe" -Recurse | Select-Object -First 1
+          if (-not $localExe) {
+            throw "No se encontró ejecutable local en dist"
+          }
+
+          $cloudExe = Get-ChildItem -Path $cloudDist -Filter "*.exe" -Recurse | Select-Object -First 1
+          if (-not $cloudExe) {
+            throw "No se encontró ejecutable cloud en dist"
+          }
+
+          $localInstallerExe = Join-Path $dist "KombaOS-Instalador-Windows-Local.exe"
+          $cloudInstallerExe = Join-Path $dist "KombaOS-Instalador-Windows-Cloud.exe"
+          Copy-Item -Force $localExe.FullName $localInstallerExe
+          Copy-Item -Force $cloudExe.FullName $cloudInstallerExe
+
+          $localInstructionsPath = Join-Path $dist "INSTRUCCIONES-LOCAL.txt"
+          @"
+PASOS PARA INSTALAR KombaOS (Windows)
+
+1) Descarga el archivo KombaOS-Instalador-Windows-Local.exe
+2) Haz doble clic y sigue el asistente
+3) Si Windows muestra una advertencia, selecciona "Más información" y luego "Ejecutar de todas formas"
+4) Al terminar, abre KombaOS desde el acceso directo en el escritorio o el menú Inicio
+5) Se abrirá en tu navegador: http://localhost:8080
+
+Si necesitas ayuda, contacta al equipo que te entregó esta aplicación.
+"@ | Set-Content -Path $localInstructionsPath -Encoding UTF8
+
+          $cloudInstructionsPath = Join-Path $dist "INSTRUCCIONES-CLOUD.txt"
+          @"
+PASOS PARA INSTALAR KombaOS CLOUD (Windows)
+
+1) Descarga el archivo KombaOS-Instalador-Windows-Cloud.exe
+2) Haz doble clic y sigue el asistente
+3) Si Windows muestra una advertencia, selecciona "Más información" y luego "Ejecutar de todas formas"
+4) Abre KombaOS desde el acceso directo
+5) Si tu equipo te dio credenciales o una base de datos, configúralas con ayuda del soporte
+
+Si necesitas ayuda, contacta al equipo que te entregó esta aplicación.
+"@ | Set-Content -Path $cloudInstructionsPath -Encoding UTF8
+
+          $localInstallerZip = Join-Path $dist "KombaOS-Instalador-Windows-Local.zip"
+          $cloudInstallerZip = Join-Path $dist "KombaOS-Instalador-Windows-Cloud.zip"
+          Compress-Archive -Force -Path @($localInstallerExe, $localInstructionsPath) -DestinationPath $localInstallerZip
+          Compress-Archive -Force -Path @($cloudInstallerExe, $cloudInstructionsPath) -DestinationPath $cloudInstallerZip
 
       - name: Upload dist
         uses: actions/upload-artifact@v4
@@ -92,8 +154,10 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
           files: |
-            dist/KombaOS-windows.zip
-            dist/*.exe
+            dist/KombaOS-Instalador-Windows-Local.exe
+            dist/KombaOS-Instalador-Windows-Local.zip
+            dist/KombaOS-Instalador-Windows-Cloud.exe
+            dist/KombaOS-Instalador-Windows-Cloud.zip
             dist/*.msi
           body_path: CHANGELOG.md
           name: ${{ env.RELEASE_TAG }}

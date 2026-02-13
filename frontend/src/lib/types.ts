@@ -56,3 +56,32 @@ export type LoadState =
   | { status: "loaded" }
   | { status: "error"; message: string };
 
+export function parseCopInputToCents(input: string): number | null {
+  const trimmed = input.trim();
+  if (!trimmed.length) return null;
+
+  if (/[.,]\d{1,2}$/.test(trimmed)) return null;
+
+  const normalized = trimmed.replace(/\s+/g, "").replace(/[.,]/g, "");
+  if (!/^\d+$/.test(normalized)) return null;
+
+  const pesos = Number.parseInt(normalized, 10);
+  if (!Number.isSafeInteger(pesos) || pesos < 0) return null;
+
+  const cents = pesos * 100;
+  if (!Number.isSafeInteger(cents)) return null;
+  return cents;
+}
+
+export function formatCopFromCents(cents: number | null | undefined): string | null {
+  if (cents == null) return null;
+
+  const pesos = cents / 100;
+  if (!Number.isFinite(pesos)) return null;
+
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(pesos);
+}

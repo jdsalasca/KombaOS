@@ -1,15 +1,25 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { formatCopFromCents, parseCopInputToCents } from "../../lib/types";
 import { useProducts } from "./useProducts";
 
 export function ProductsPanel() {
-  const { products, productsState, selectedProductId, setSelectedProductId, selectedProduct, actions } = useProducts();
+  const {
+    products,
+    productsState,
+    selectedProductId,
+    setSelectedProductId,
+    selectedProduct,
+    actions,
+    createState,
+    editState,
+    lastUpdatedAt,
+  } = useProducts();
 
   type ProductFormInput = {
     name: string;
     description: string;
-    priceCents: string;
-    currency: string;
+    priceCop: string;
     active: boolean;
   };
 
@@ -17,8 +27,7 @@ export function ProductsPanel() {
     defaultValues: {
       name: "",
       description: "",
-      priceCents: "",
-      currency: "COP",
+      priceCop: "",
       active: true,
     },
     mode: "onBlur",
@@ -28,8 +37,7 @@ export function ProductsPanel() {
     defaultValues: {
       name: "",
       description: "",
-      priceCents: "",
-      currency: "COP",
+      priceCop: "",
       active: false,
     },
     mode: "onBlur",
@@ -39,11 +47,14 @@ export function ProductsPanel() {
     updateForm.reset({
       name: selectedProduct?.name ?? "",
       description: selectedProduct?.description ?? "",
-      priceCents: selectedProduct ? String(selectedProduct.priceCents) : "",
-      currency: selectedProduct?.currency ?? "COP",
+      priceCop: selectedProduct ? String(Math.round(selectedProduct.priceCents / 100)) : "",
       active: selectedProduct?.active ?? false,
     });
   }, [selectedProduct, updateForm]);
+
+  const lastUpdatedLabel = lastUpdatedAt
+    ? new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "short" }).format(lastUpdatedAt)
+    : "—";
 
 
   return (
@@ -53,7 +64,20 @@ export function ProductsPanel() {
           <h2 className="panel__title">Productos</h2>
           <p className="panel__subtitle">Administra precios y disponibilidad del catálogo.</p>
         </div>
-        <span className="pill">{products.length} activos</span>
+        <span className="pill">{products.filter((p) => p.active).length} activos</span>
+      </div>
+
+      <p className="muted">Última actualización: {lastUpdatedLabel}</p>
+
+      <div className="formRow">
+        <button
+          className="button button--ghost"
+          type="button"
+          onClick={actions.reload}
+          disabled={productsState.status === "loading"}
+        >
+          Recargar lista
+        </button>
       </div>
 
       <div className="form">
@@ -64,15 +88,13 @@ export function ProductsPanel() {
               await actions.create({
                 name: values.name.trim(),
                 description: values.description.trim(),
-                priceCents: values.priceCents.trim(),
-                currency: values.currency.trim().toUpperCase(),
+                priceCop: values.priceCop.trim(),
                 active: values.active,
               });
               createForm.reset({
                 name: "",
                 description: "",
-                priceCents: "",
-                currency: "COP",
+                priceCop: "",
                 active: true,
               });
             })}
@@ -88,6 +110,7 @@ export function ProductsPanel() {
                 placeholder="Ej. Mesa de roble"
                 {...createForm.register("name", {
                   required: "Ingresa el nombre del producto.",
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
                 })}
               />
               {createForm.formState.errors.name ? (
@@ -97,52 +120,41 @@ export function ProductsPanel() {
             <label className="field">
               <span className="field__label">Descripción</span>
               <input
-                className="field__input"
+                className={
+                  createForm.formState.errors.description ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Descripción producto"
                 placeholder="Ej. Hecha a mano"
-                {...createForm.register("description")}
+                {...createForm.register("description", {
+                  required: "Ingresa una descripción.",
+                  maxLength: { value: 2000, message: "Máximo 2000 caracteres." },
+                })}
               />
+              {createForm.formState.errors.description ? (
+                <span className="field__error">{createForm.formState.errors.description.message}</span>
+              ) : null}
             </label>
             <label className="field">
-              <span className="field__label">Precio</span>
+              <span className="field__label">Precio (COP)</span>
               <input
                 className={
-                  createForm.formState.errors.priceCents ? "field__input field__input--error" : "field__input"
+                  createForm.formState.errors.priceCop ? "field__input field__input--error" : "field__input"
                 }
-                aria-label="Precio (centavos)"
+                aria-label="Precio (COP)"
                 inputMode="numeric"
-                {...createForm.register("priceCents", {
+                {...createForm.register("priceCop", {
                   required: "Ingresa el precio del producto.",
                   validate: (value) => {
-                    const parsed = Number(value.trim());
-                    if (!Number.isFinite(parsed) || parsed < 0) {
-                      return "El precio debe ser un número válido.";
-                    }
+                    const cents = parseCopInputToCents(value);
+                    if (cents == null) return "Ingresa un valor en pesos (sin decimales).";
+                    if (cents > 999_999_999) return "El precio es demasiado alto.";
                     return true;
                   },
                 })}
               />
-              <span className="field__hint">Valor en centavos.</span>
-              {createForm.formState.errors.priceCents ? (
-                <span className="field__error">{createForm.formState.errors.priceCents.message}</span>
-              ) : null}
-            </label>
-            <label className="field">
-              <span className="field__label">Moneda</span>
-              <input
-                className={
-                  createForm.formState.errors.currency ? "field__input field__input--error" : "field__input"
-                }
-                aria-label="Moneda"
-                placeholder="COP"
-                {...createForm.register("currency", {
-                  required: "Ingresa la moneda.",
-                  validate: (value) =>
-                    /^[A-Za-z]{3}$/.test(value.trim()) || "La moneda debe tener 3 letras.",
-                })}
-              />
-              {createForm.formState.errors.currency ? (
-                <span className="field__error">{createForm.formState.errors.currency.message}</span>
+              <span className="field__hint">Pesos colombianos (ej. 120000).</span>
+              {createForm.formState.errors.priceCop ? (
+                <span className="field__error">{createForm.formState.errors.priceCop.message}</span>
               ) : null}
             </label>
             <label className="field inline">
@@ -153,16 +165,24 @@ export function ProductsPanel() {
               />
               Producto activo
             </label>
-            <button className="button button--primary" type="submit">
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={createForm.formState.isSubmitting || createState.status === "loading"}
+            >
               Crear producto
             </button>
+            {createState.status === "loading" && <p className="muted">Guardando producto...</p>}
+            {createState.status === "error" && <p className="error">{createState.message}</p>}
           </form>
         </div>
       </div>
 
       {productsState.status === "loading" && <p className="muted">Cargando productos...</p>}
       {productsState.status === "error" && <p className="error">{productsState.message}</p>}
-      {productsState.status === "loaded" && !products.length && <p className="muted">Aún no hay productos registrados.</p>}
+      {productsState.status === "loaded" && !products.length && (
+        <p className="muted">Aún no hay productos registrados. Crea el primero con nombre, descripción y precio.</p>
+      )}
 
       <ul className="list">
         {products.map((p) => (
@@ -174,7 +194,7 @@ export function ProductsPanel() {
             >
               <span className="listButton__title">{p.name}</span>
               <span className="listButton__meta">
-                {p.currency} {p.priceCents / 100} · {p.active ? "Activo" : "Inactivo"}
+                {(formatCopFromCents(p.priceCents) ?? `${p.currency} ${p.priceCents / 100}`) + ` · ${p.active ? "Activo" : "Inactivo"}`}
               </span>
             </button>
           </li>
@@ -190,8 +210,7 @@ export function ProductsPanel() {
             await actions.update(selectedProductId, {
               name: values.name.trim(),
               description: values.description.trim(),
-              priceCents: values.priceCents.trim(),
-              currency: values.currency.trim().toUpperCase(),
+              priceCop: values.priceCop.trim(),
               active: values.active,
             });
           })}
@@ -209,6 +228,7 @@ export function ProductsPanel() {
                 disabled={!selectedProductId}
                 {...updateForm.register("name", {
                   required: "Ingresa el nombre del producto.",
+                  maxLength: { value: 200, message: "Máximo 200 caracteres." },
                 })}
               />
               {updateForm.formState.errors.name ? (
@@ -218,53 +238,42 @@ export function ProductsPanel() {
             <label className="field">
               <span className="field__label">Descripción</span>
               <input
-                className="field__input"
+                className={
+                  updateForm.formState.errors.description ? "field__input field__input--error" : "field__input"
+                }
                 aria-label="Editar descripción producto"
                 placeholder="Descripción"
                 disabled={!selectedProductId}
-                {...updateForm.register("description")}
+                {...updateForm.register("description", {
+                  required: "Ingresa una descripción.",
+                  maxLength: { value: 2000, message: "Máximo 2000 caracteres." },
+                })}
               />
+              {updateForm.formState.errors.description ? (
+                <span className="field__error">{updateForm.formState.errors.description.message}</span>
+              ) : null}
             </label>
             <label className="field">
-              <span className="field__label">Precio</span>
+              <span className="field__label">Precio (COP)</span>
               <input
                 className={
-                  updateForm.formState.errors.priceCents ? "field__input field__input--error" : "field__input"
+                  updateForm.formState.errors.priceCop ? "field__input field__input--error" : "field__input"
                 }
-                aria-label="Editar precio (centavos)"
+                aria-label="Editar precio (COP)"
                 inputMode="numeric"
                 disabled={!selectedProductId}
-                {...updateForm.register("priceCents", {
+                {...updateForm.register("priceCop", {
                   required: "Ingresa el precio del producto.",
                   validate: (value) => {
-                    const parsed = Number(value.trim());
-                    if (!Number.isFinite(parsed) || parsed < 0) {
-                      return "El precio debe ser un número válido.";
-                    }
+                    const cents = parseCopInputToCents(value);
+                    if (cents == null) return "Ingresa un valor en pesos (sin decimales).";
+                    if (cents > 999_999_999) return "El precio es demasiado alto.";
                     return true;
                   },
                 })}
               />
-              {updateForm.formState.errors.priceCents ? (
-                <span className="field__error">{updateForm.formState.errors.priceCents.message}</span>
-              ) : null}
-            </label>
-            <label className="field">
-              <span className="field__label">Moneda</span>
-              <input
-                className={
-                  updateForm.formState.errors.currency ? "field__input field__input--error" : "field__input"
-                }
-                aria-label="Editar moneda"
-                disabled={!selectedProductId}
-                {...updateForm.register("currency", {
-                  required: "Ingresa la moneda.",
-                  validate: (value) =>
-                    /^[A-Za-z]{3}$/.test(value.trim()) || "La moneda debe tener 3 letras.",
-                })}
-              />
-              {updateForm.formState.errors.currency ? (
-                <span className="field__error">{updateForm.formState.errors.currency.message}</span>
+              {updateForm.formState.errors.priceCop ? (
+                <span className="field__error">{updateForm.formState.errors.priceCop.message}</span>
               ) : null}
             </label>
             <label className="field inline">
@@ -278,7 +287,11 @@ export function ProductsPanel() {
             </label>
           </div>
           <div className="formRow">
-            <button className="button button--primary" type="submit" disabled={!selectedProductId}>
+            <button
+              className="button button--primary"
+              type="submit"
+              disabled={!selectedProductId || updateForm.formState.isSubmitting || editState.status === "loading"}
+            >
               Guardar cambios
             </button>
             <button
@@ -289,10 +302,12 @@ export function ProductsPanel() {
                 await actions.remove(selectedProductId);
                 setSelectedProductId(null);
               }}
-              disabled={!selectedProductId}
+              disabled={!selectedProductId || updateForm.formState.isSubmitting || editState.status === "loading"}
             >
               Eliminar
             </button>
+            {editState.status === "loading" && <p className="muted">Actualizando producto...</p>}
+            {editState.status === "error" && <p className="error">{editState.message}</p>}
           </div>
         </form>
       </div>

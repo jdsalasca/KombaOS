@@ -1,16 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { productsApi } from "../../lib/api";
+import { parseCopInputToCents } from "../../lib/types";
 import type { LoadState, Product } from "../../lib/types";
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [productsState, setProductsState] = useState<LoadState>({ status: "idle" });
+  const [createState, setCreateState] = useState<LoadState>({ status: "idle" });
+  const [editState, setEditState] = useState<LoadState>({ status: "idle" });
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
   const [userSelectedProductId, setUserSelectedProductId] = useState<string | null>(null);
 
   const list = useCallback(async () => {
     setProductsState({ status: "loading" });
     try {
       setProducts(await productsApi.list());
+      setLastUpdatedAt(new Date());
       setProductsState({ status: "loaded" });
     } catch (e) {
       setProductsState({ status: "error", message: e instanceof Error ? e.message : "Error" });
@@ -34,20 +39,7 @@ export function useProducts() {
     return products.find((p) => p.id === selectedProductId) ?? null;
   }, [products, selectedProductId]);
 
-  function parsePriceCents(raw: string): number | null {
-    const trimmed = raw.trim();
-    if (!trimmed.length) return null;
-    const parsed = Number(trimmed);
-    if (!Number.isFinite(parsed) || parsed < 0) return null;
-    return parsed;
-  }
-
-  function parseCurrency(raw: string): string | null {
-    const currency = raw.trim().toUpperCase();
-    if (!currency.length) return null;
-    if (!/^[A-Z]{3}$/.test(currency)) return null;
-    return currency;
-  }
+  const currency = "COP";
 
   const actions = useMemo(
     () => ({
@@ -55,58 +47,74 @@ export function useProducts() {
       async create(input: {
         name: string;
         description: string;
-        priceCents: string;
-        currency: string;
+        priceCop: string;
         active: boolean;
       }) {
         const name = input.name.trim();
         if (!name.length) return;
 
-        const priceCents = parsePriceCents(input.priceCents);
+        const description = input.description.trim();
+        if (!description.length) return;
+
+        const priceCents = parseCopInputToCents(input.priceCop);
         if (priceCents == null) return;
 
-        const currency = parseCurrency(input.currency);
-        if (!currency) return;
-
-        await productsApi.create({
-          name,
-          description: input.description.trim(),
-          priceCents,
-          currency,
-          active: input.active,
-        });
-        await list();
+        setCreateState({ status: "loading" });
+        try {
+          await productsApi.create({
+            name,
+            description,
+            priceCents,
+            currency,
+            active: input.active,
+          });
+          await list();
+          setCreateState({ status: "loaded" });
+        } catch (e) {
+          setCreateState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
 
       async update(productId: string, input: {
         name: string;
         description: string;
-        priceCents: string;
-        currency: string;
+        priceCop: string;
         active: boolean;
       }) {
         const name = input.name.trim();
         if (!name.length) return;
 
-        const priceCents = parsePriceCents(input.priceCents);
+        const description = input.description.trim();
+        if (!description.length) return;
+
+        const priceCents = parseCopInputToCents(input.priceCop);
         if (priceCents == null) return;
 
-        const currency = parseCurrency(input.currency);
-        if (!currency) return;
-
-        await productsApi.update(productId, {
-          name,
-          description: input.description.trim(),
-          priceCents,
-          currency,
-          active: input.active,
-        });
-        await list();
+        setEditState({ status: "loading" });
+        try {
+          await productsApi.update(productId, {
+            name,
+            description,
+            priceCents,
+            currency,
+            active: input.active,
+          });
+          await list();
+          setEditState({ status: "loaded" });
+        } catch (e) {
+          setEditState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
 
       async remove(productId: string) {
-        await productsApi.delete(productId);
-        await list();
+        setEditState({ status: "loading" });
+        try {
+          await productsApi.delete(productId);
+          await list();
+          setEditState({ status: "loaded" });
+        } catch (e) {
+          setEditState({ status: "error", message: e instanceof Error ? e.message : "Error" });
+        }
       },
     }),
     [list],
@@ -119,5 +127,8 @@ export function useProducts() {
     setSelectedProductId: setUserSelectedProductId,
     selectedProduct,
     actions,
+    createState,
+    editState,
+    lastUpdatedAt,
   };
 }
