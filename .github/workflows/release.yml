@@ -97,19 +97,20 @@ jobs:
           Copy-Item -Force $localExe.FullName $localInstallerExe
 
           $localInstructionsPath = Join-Path $dist "INSTRUCCIONES.txt"
-          @"
-PASOS PARA INSTALAR KombaOS (Windows)
-
-1) Descarga el archivo KombaOS-Instalador-Windows.exe
-2) Haz doble clic y sigue el asistente
-3) Si Windows muestra una advertencia, selecciona "Más información" y luego "Ejecutar de todas formas"
-4) Al terminar, abre KombaOS desde el acceso directo en el escritorio o el menú Inicio
-5) Se abrirá en tu navegador: http://localhost:8080
-
-Este instalador funciona en modo local. Para despliegue en nube, contacta al equipo de soporte.
-
-Si necesitas ayuda, contacta al equipo que te entregó esta aplicación.
-"@ | Set-Content -Path $localInstructionsPath -Encoding UTF8
+          $instructions = @(
+            "PASOS PARA INSTALAR KombaOS (Windows)",
+            "",
+            "1) Descarga el archivo KombaOS-Instalador-Windows.exe",
+            "2) Haz doble clic y sigue el asistente",
+            "3) Si Windows muestra una advertencia, selecciona \"Más información\" y luego \"Ejecutar de todas formas\"",
+            "4) Al terminar, abre KombaOS desde el acceso directo en el escritorio o el menú Inicio",
+            "5) Se abrirá en tu navegador: http://localhost:8080",
+            "",
+            "Este instalador funciona en modo local. Para despliegue en nube, contacta al equipo de soporte.",
+            "",
+            "Si necesitas ayuda, contacta al equipo que te entregó esta aplicación."
+          )
+          $instructions | Set-Content -Path $localInstructionsPath -Encoding UTF8
 
           $localInstallerZip = Join-Path $dist "KombaOS-Instalador-Windows.zip"
           Compress-Archive -Force -Path @($localInstallerExe, $localInstructionsPath) -DestinationPath $localInstallerZip
