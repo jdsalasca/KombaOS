@@ -63,16 +63,15 @@ Para usuarios finales no técnicos, usa el instalador publicado en GitHub Releas
 ### Opción recomendada (Local)
 
 1. Abre la página de Releases en GitHub.
-2. Descarga KombaOS-Instalador-Windows-Local.exe.
+2. Descarga KombaOS-Instalador-Windows.exe.
 3. Haz doble clic y sigue el asistente.
 4. Si Windows muestra una advertencia, selecciona "Más información" y luego "Ejecutar de todas formas".
 5. Abre KombaOS desde el acceso directo. Se abrirá en el navegador en http://localhost:8080.
 
-### Opción Cloud (solo si tu equipo lo indicó)
+### Cloud
 
-1. Descarga KombaOS-Instalador-Windows-Cloud.exe.
-2. Instala y abre la aplicación.
-3. La configuración de base de datos y credenciales debe ser realizada por soporte.
+El despliegue en nube es un proceso separado y no usa el instalador EXE.
+Para habilitarlo, contacta al equipo de soporte.
 
 ## CI/CD y releases
 
