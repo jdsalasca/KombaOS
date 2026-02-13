@@ -8,6 +8,15 @@ Este proyecto sigue un changelog manual en español.
 - Pendiente: autenticación y RBAC.
 - Pendiente: catálogo público, carrito, órdenes y postventa.
 
+## [0.1.1] - 2026-02-12
+
+### Añadido
+
+- Instaladores Windows diferenciados para local y cloud.
+- Smoke test automático antes de publicar el instalador.
+- Instrucciones simples incluidas en el paquete de instalación.
+- Build de release asegurado desde el tag publicado.
+
 ## [0.1.0] - 2026-02-11
 
 ### Añadido
@@ -18,4 +27,3 @@ Este proyecto sigue un changelog manual en español.
 - Persistencia híbrida local/nube (archivos JSON en local; JPA en nube).
 - Empaquetado Windows EXE (jpackage) con smoke test automatizado.
 - Pruebas: integración backend, unit/integration frontend y E2E navegador (Playwright).
-

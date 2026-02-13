@@ -6,7 +6,8 @@ param(
   [string]$IconPath = "C:\\Users\\jdsal\\Downloads\\cat.png",
   [ValidateSet("exe","app-image")]
   [string]$PackageType = "exe",
-  [string]$AppVersion = "0.1.1"
+  [string]$AppVersion = "0.1.1",
+  [string]$OutputDir = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,7 +19,12 @@ $root = Split-Path -Parent $root
 $frontendDir = Join-Path $root "frontend"
 $backendDir = Join-Path $root "backend"
 $backendStaticDir = Join-Path $backendDir "src\\main\\resources\\static"
-$distDir = Join-Path $root "dist"
+$distDir = $OutputDir
+if (-not $distDir) {
+  $distDir = Join-Path $root "dist"
+} elseif (-not [System.IO.Path]::IsPathRooted($distDir)) {
+  $distDir = Join-Path $root $distDir
+}
 
 $iconArgument = $null
 if ($IconPath -and (Test-Path $IconPath)) {
