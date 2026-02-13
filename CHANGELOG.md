@@ -12,7 +12,7 @@ Este proyecto sigue un changelog manual en español.
 
 ### Añadido
 
-- Instaladores Windows diferenciados para local y cloud.
+- Instalador Windows local para usuarios finales.
 - Smoke test automático antes de publicar el instalador.
 - Instrucciones simples incluidas en el paquete de instalación.
 - Build de release asegurado desde el tag publicado.
