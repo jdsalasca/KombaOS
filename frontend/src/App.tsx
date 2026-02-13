@@ -82,6 +82,8 @@ function App() {
             <div>
               <h1 className="login__title">Bienvenido a KombaOS</h1>
               <p className="login__subtitle">Gestiona inventarios y catálogo sin complicaciones.</p>
+              <p className="muted">Esta instalación funciona en modo local en este equipo.</p>
+              <p className="muted">Para nube, solicita el despliegue a soporte.</p>
             </div>
             <form
               className="form"
@@ -204,6 +206,21 @@ function App() {
                     >Registrar movimiento</a>
                   <a className="button" href="#productos" onClick={() => setActiveSection("productos")}
                     >Agregar producto</a>
+                </div>
+                <div className="hero__info">
+                  <div className="card">
+                    <p className="card__title">Modo de uso</p>
+                    <p className="card__value">Local (en este equipo)</p>
+                    <p className="card__helper">Tus datos se guardan aquí y no dependen de internet.</p>
+                  </div>
+                  <div className="card">
+                    <p className="card__title">Guía rápida</p>
+                    <ul className="list">
+                      <li>Registra tus materiales e insumos.</li>
+                      <li>Define alertas de stock mínimo.</li>
+                      <li>Crea productos y controla su estado.</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </section>

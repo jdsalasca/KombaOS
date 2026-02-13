@@ -207,6 +207,12 @@
   flex-wrap: wrap;
 }
 
+.hero__info {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
 .cards {
   display: grid;
   gap: 16px;
@@ -237,6 +243,21 @@
   font-size: 22px;
   font-weight: 700;
   margin: 6px 0 0;
+}
+
+.card__helper {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
 }
 
 .panel {
