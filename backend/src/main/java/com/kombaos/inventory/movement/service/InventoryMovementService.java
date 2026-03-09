@@ -4,6 +4,7 @@ import com.kombaos.inventory.material.service.MaterialService;
 import com.kombaos.inventory.movement.domain.InventoryMovement;
 import com.kombaos.inventory.movement.domain.InventoryMovementType;
 import com.kombaos.inventory.movement.repository.InventoryMovementStore;
+import com.kombaos.inventory.threshold.repository.MaterialStockThresholdStore;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -16,10 +17,16 @@ public class InventoryMovementService {
 
     private final InventoryMovementStore store;
     private final MaterialService materialService;
+    private final MaterialStockThresholdStore thresholdStore;
 
-    public InventoryMovementService(InventoryMovementStore store, MaterialService materialService) {
+    public InventoryMovementService(
+            InventoryMovementStore store,
+            MaterialService materialService,
+            MaterialStockThresholdStore thresholdStore
+    ) {
         this.store = store;
         this.materialService = materialService;
+        this.thresholdStore = thresholdStore;
     }
 
     public List<InventoryMovement> list(Optional<String> materialId) {
@@ -33,6 +40,9 @@ public class InventoryMovementService {
     }
 
     public InventoryMovement create(String materialId, InventoryMovementType type, BigDecimal quantity, String reason) {
+        if (materialId == null || materialId.isBlank()) {
+            throw new IllegalArgumentException("materialId is required");
+        }
         materialService.getById(materialId);
 
         if (quantity == null) {
@@ -47,6 +57,10 @@ public class InventoryMovementService {
         if ((type == InventoryMovementType.IN || type == InventoryMovementType.OUT) && quantity.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Quantity must be positive for IN/OUT movements");
         }
+        if ((type == InventoryMovementType.OUT || type == InventoryMovementType.ADJUST)
+                && (reason == null || reason.isBlank())) {
+            throw new IllegalArgumentException("Reason is required for OUT/ADJUST movements");
+        }
 
         BigDecimal current = getStock(materialId);
         BigDecimal delta = switch (type) {
@@ -57,6 +71,14 @@ public class InventoryMovementService {
         BigDecimal next = current.add(delta);
         if (next.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Insufficient stock for material: " + materialId);
+        }
+
+        if (type == InventoryMovementType.OUT) {
+            thresholdStore.getByMaterialId(materialId).ifPresent(threshold -> {
+                if (next.compareTo(threshold.minStock()) < 0) {
+                    throw new IllegalArgumentException("Movement would leave stock below minimum threshold for material: " + materialId);
+                }
+            });
         }
 
         return store.create(materialId, type, quantity, reason);
