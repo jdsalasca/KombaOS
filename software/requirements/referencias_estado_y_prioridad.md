@@ -13,15 +13,15 @@ Convenciones:
 
 | ID | Iniciativa | Prioridad | Estado | Entregable |
 |---:|---|:---:|:---:|---|
-| P0-01 | Autenticación + roles | P0 | Pendiente | Login, RBAC, auditoría mínima |
-| P0-02 | Inventario base | P0 | Pendiente | Materiales, movimientos, stock y alertas |
+| P0-01 | Autenticación + roles | P0 | En progreso | Login, RBAC, auditoría mínima |
+| P0-02 | Inventario base | P0 | Hecho | Materiales, movimientos, stock y alertas |
 | P0-03 | Producción base | P0 | Pendiente | Órdenes, etapas, tiempos, consumos |
 | P0-04 | Trazabilidad mínima | P0 | Pendiente | Insumo→lote→producto→orden (ficha) |
-| P0-05 | Catálogo + backoffice | P0 | Pendiente | CRUD productos/colecciones + publicación |
+| P0-05 | Catálogo + backoffice | P0 | Hecho (MVP) | CRUD productos/colecciones + publicación |
 | P0-06 | Web cliente (catálogo + orden) | P0 | Pendiente | Navegación + carrito/orden (sin IA) |
 | P0-07 | Postventa (encuestas) | P0 | Pendiente | Plantillas + disparadores + respuestas |
-| P0-08 | Estrategia de pruebas completa | P0 | Pendiente | Regresión + E2E para backend y frontend |
-| P0-09 | Dockerización backend | P0 | Pendiente | Dockerfile + variables + health endpoint |
+| P0-08 | Estrategia de pruebas completa | P0 | En progreso | Regresión + E2E para backend y frontend |
+| P0-09 | Dockerización backend | P0 | Hecho (MVP) | Dockerfile + variables + health endpoint |
 | P0-10 | Empaquetado para cliente (Windows) | P0 | Pendiente | Generación de EXE instalable/portable |
 | P1-01 | Base de conocimiento (técnicas) | P1 | Pendiente | Técnicas, pasos, archivos, búsqueda |
 | P1-02 | Formación (cursos/workshops) | P1 | Pendiente | Cursos, lecciones, inscripciones |
@@ -40,3 +40,25 @@ Convenciones:
 - Enfoque recomendado: empaquetar **backend + frontend build** en una sola distribución.
 - Opción preferida para Windows: `jpackage` (JDK) para generar instalador/EXE a partir del JAR.
 - El backend puede servir el frontend compilado (assets estáticos) para un despliegue “todo en uno”.
+
+## Enfoque GSD (Get Stuff Done) — siguiente frente tomado
+
+Frente activo: **P0-01 Autenticación + roles**.
+
+Objetivo del siguiente corte:
+- Habilitar login básico con sesión/JWT y usuarios locales.
+- Restringir endpoints por rol mínimo (`ADMIN`, `OPERACION`, `COMERCIAL`).
+- Mantener compatibilidad con el flujo actual de inventario y productos.
+
+Desglose en pasos cortos (GSD):
+1. Definir modelo de usuario/rol y semilla local para entorno dev.
+2. Implementar endpoint de autenticación (`/api/auth/login`).
+3. Proteger rutas críticas con autorización por rol.
+4. Agregar pruebas smoke de autenticación y autorización.
+5. Publicar guía rápida de uso (credenciales dev + rutas protegidas).
+
+### Avance GSD — corte implementado
+- Se habilitó autenticación básica opcional por configuración (`kombaos.security.enabled`).
+- Se creó endpoint de login técnico (`GET /api/auth/login`) que devuelve usuario y roles autenticados.
+- Se aplicó autorización por rol en rutas de inventario/productos para el modo seguro.
+- Se agregaron pruebas smoke de autenticación/autorización en backend.
