@@ -4,6 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: P0-4-movement-integrity-validations
 status: Resuming
+last_updated: "2026-03-09T03:35:00.000Z"
 last_updated: "2026-03-09T03:15:00.000Z"
 current_phase: P0-2-api-error-format
 status: Resuming
@@ -38,6 +39,7 @@ See: .planning/PROJECT.md
 - 2026-03-09: Tarea #2 en ejecución: handler de errores API unificado con `code`, `message`, `details`, `traceId` + ajustes de tests.
 - 2026-03-09: Tarea #3 en ejecución: validación de egresos bajo umbral mínimo + pruebas unitarias de escenarios borde en InventoryMovementService.
 - 2026-03-09: Tarea #3 completada: egresos bloqueados cuando dejan stock bajo umbral mínimo y cobertura unitaria agregada en InventoryMovementService.
+- 2026-03-09: Tarea #4 en ejecución: validaciones de integridad para movimientos (materialId requerido, reason obligatorio en OUT/ADJUST) + pruebas de rechazo.
 
 - 2026-03-09: Remote `origin` configured to `https://github.com/jdsalasca/KombaOS` for develop merge flow via `gh`.
 - 2026-03-09: Misión iniciada con GSD (`init progress`, `init execute-phase`) para ejecutar Wave 1 del backlog en orden de prioridad.

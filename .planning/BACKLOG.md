@@ -10,6 +10,7 @@ Fuente: levantamiento técnico en `.planning/codebase/*.md` y estándares de cal
 ## Ejecución actual (GSD)
 - **Misión activa:** Wave 1 / P0.
 - **Tarea en curso:** #4 — validaciones de integridad de movimientos.
+- **Avance:** #1, #2 y #3 completadas; #4 en progreso con validaciones de referencias (`materialId`) y motivo obligatorio para movimientos `OUT/ADJUST` + tests de rechazo.
 - **Avance:** #1, #2 y #3 completadas; #4 en preparación para reforzar validaciones de integridad en movimientos.
 - **Tarea en curso:** #2 — formato unificado de errores API.
 - **Avance:** #1 completada en contrato OpenAPI; #2 en progreso con `ApiExceptionHandler` unificado a `code/message/details/traceId` y tests de contrato de error actualizados.

@@ -40,6 +40,9 @@ public class InventoryMovementService {
     }
 
     public InventoryMovement create(String materialId, InventoryMovementType type, BigDecimal quantity, String reason) {
+        if (materialId == null || materialId.isBlank()) {
+            throw new IllegalArgumentException("materialId is required");
+        }
         materialService.getById(materialId);
 
         if (quantity == null) {
@@ -53,6 +56,10 @@ public class InventoryMovementService {
         }
         if ((type == InventoryMovementType.IN || type == InventoryMovementType.OUT) && quantity.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Quantity must be positive for IN/OUT movements");
+        }
+        if ((type == InventoryMovementType.OUT || type == InventoryMovementType.ADJUST)
+                && (reason == null || reason.isBlank())) {
+            throw new IllegalArgumentException("Reason is required for OUT/ADJUST movements");
         }
 
         BigDecimal current = getStock(materialId);

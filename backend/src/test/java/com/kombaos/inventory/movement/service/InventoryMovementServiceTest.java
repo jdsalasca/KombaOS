@@ -41,6 +41,28 @@ class InventoryMovementServiceTest {
     @BeforeEach
     void setUp() {
         service = new InventoryMovementService(movementStore, materialService, thresholdStore);
+    }
+
+    @Test
+    void rejectsBlankMaterialId() {
+        assertThatThrownBy(() -> service.create(" ", InventoryMovementType.IN, new BigDecimal("1"), "seed"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("materialId is required");
+    }
+
+    @Test
+    void requiresReasonForOutAndAdjustMovements() {
+        when(materialService.getById("mat-1")).thenReturn(new Material(
+                "mat-1", "Algodon", "kg", null, null, false, null, null, Instant.now()
+        ));
+
+        assertThatThrownBy(() -> service.create("mat-1", InventoryMovementType.OUT, new BigDecimal("1"), " "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Reason is required");
+
+        assertThatThrownBy(() -> service.create("mat-1", InventoryMovementType.ADJUST, new BigDecimal("-1"), null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Reason is required");
         when(materialService.getById("mat-1")).thenReturn(new Material(
                 "mat-1", "Algodon", "kg", null, null, false, null, null, Instant.now()
         ));
@@ -48,6 +70,9 @@ class InventoryMovementServiceTest {
 
     @Test
     void rejectsOutMovementThatGoesBelowConfiguredMinStock() {
+        when(materialService.getById("mat-1")).thenReturn(new Material(
+                "mat-1", "Algodon", "kg", null, null, false, null, null, Instant.now()
+        ));
         when(movementStore.list(Optional.of("mat-1"))).thenReturn(List.of(
                 new InventoryMovement("in-1", "mat-1", InventoryMovementType.IN, new BigDecimal("10"), "Initial", Instant.now())
         ));
@@ -64,6 +89,9 @@ class InventoryMovementServiceTest {
 
     @Test
     void allowsOutMovementWhenResultStaysAboveThreshold() {
+        when(materialService.getById("mat-1")).thenReturn(new Material(
+                "mat-1", "Algodon", "kg", null, null, false, null, null, Instant.now()
+        ));
         when(movementStore.list(Optional.of("mat-1"))).thenReturn(List.of(
                 new InventoryMovement("in-1", "mat-1", InventoryMovementType.IN, new BigDecimal("10"), "Initial", Instant.now())
         ));
@@ -78,6 +106,9 @@ class InventoryMovementServiceTest {
 
     @Test
     void keepsLegacyRuleWhenNoThresholdExists() {
+        when(materialService.getById("mat-1")).thenReturn(new Material(
+                "mat-1", "Algodon", "kg", null, null, false, null, null, Instant.now()
+        ));
         when(movementStore.list(Optional.of("mat-1"))).thenReturn(List.of(
                 new InventoryMovement("in-1", "mat-1", InventoryMovementType.IN, new BigDecimal("2"), "Initial", Instant.now())
         ));
