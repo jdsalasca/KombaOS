@@ -56,3 +56,9 @@ Desglose en pasos cortos (GSD):
 3. Proteger rutas críticas con autorización por rol.
 4. Agregar pruebas smoke de autenticación y autorización.
 5. Publicar guía rápida de uso (credenciales dev + rutas protegidas).
+
+### Avance GSD — corte implementado
+- Se habilitó autenticación básica opcional por configuración (`kombaos.security.enabled`).
+- Se creó endpoint de login técnico (`GET /api/auth/login`) que devuelve usuario y roles autenticados.
+- Se aplicó autorización por rol en rutas de inventario/productos para el modo seguro.
+- Se agregaron pruebas smoke de autenticación/autorización en backend.
