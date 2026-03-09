@@ -63,9 +63,6 @@ class InventoryMovementServiceTest {
         assertThatThrownBy(() -> service.create("mat-1", InventoryMovementType.ADJUST, new BigDecimal("-1"), null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Reason is required");
-        when(materialService.getById("mat-1")).thenReturn(new Material(
-                "mat-1", "Algodon", "kg", null, null, false, null, null, Instant.now()
-        ));
     }
 
     @Test
