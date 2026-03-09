@@ -5,7 +5,10 @@ milestone_name: milestone
 current_phase: P0-2-api-error-format
 status: Resuming
 last_updated: "2026-03-09T02:20:00.000Z"
----
+current_phase: P0-1-openapi-contratos
+status: Resuming
+last_updated: "2026-03-09T02:05:00.000Z"
+
 
 # Session State
 
@@ -18,6 +21,8 @@ See: .planning/PROJECT.md
 **Milestone:** v1.0 milestone
 **Current phase:** P0-2-api-error-format
 **Status:** Resuming
+**Current phase:** P0-1-openapi-contratos
+
 
 ## Session Log
 
