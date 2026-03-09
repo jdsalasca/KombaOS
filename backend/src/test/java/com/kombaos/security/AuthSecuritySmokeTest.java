@@ -69,6 +69,12 @@ class AuthSecuritySmokeTest {
     @Test
     void loginAndRoleAuthorizationMatrix() {
         String baseUrl = "http://localhost:" + port;
+    void loginAndRoleAuthorization() {
+        String baseUrl = "http://localhost:" + port;
+
+        TestRestTemplate anonymous = new TestRestTemplate();
+        assertEquals(HttpStatus.UNAUTHORIZED,
+                anonymous.getForEntity(baseUrl + "/api/auth/login", String.class).getStatusCode());
 
         TestRestTemplate operacion = new TestRestTemplate("operacion", "operacion123");
         ResponseEntity<AuthLoginResponse> loginResponse = operacion.exchange(
