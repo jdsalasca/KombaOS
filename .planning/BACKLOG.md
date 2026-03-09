@@ -7,6 +7,12 @@ Fuente: levantamiento técnico en `.planning/codebase/*.md` y estándares de cal
 - **P1**: alto impacto en robustez y mantenimiento.
 - **P2**: mejora continua y escalabilidad.
 
+## Ejecución actual (GSD)
+- **Misión activa:** Wave 1 / P0.
+- **Tarea en curso:** #1 — contratos OpenAPI reales.
+- **Avance:** `shared/openapi/kombaos.yaml` alineado con endpoints de productos/materiales/movimientos/umbrales; pendiente automatizar validación en CI para cerrar completamente el criterio.
+
+
 ## Tareas
 
 | # | Prioridad | Área | Tarea | Entregable / Criterio de aceptación |
