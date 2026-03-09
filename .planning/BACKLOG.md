@@ -12,6 +12,7 @@ Fuente: levantamiento técnico en `.planning/codebase/*.md` y estándares de cal
 - **Tarea en curso:** #1 — contratos OpenAPI reales.
 - **Avance:** `shared/openapi/kombaos.yaml` alineado con endpoints de productos/materiales/movimientos/umbrales; pendiente automatizar validación en CI para cerrar completamente el criterio.
 
+
 ## Tareas
 
 | # | Prioridad | Área | Tarea | Entregable / Criterio de aceptación |

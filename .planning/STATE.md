@@ -5,7 +5,7 @@ milestone_name: milestone
 current_phase: P0-1-openapi-contratos
 status: Resuming
 last_updated: "2026-03-09T02:05:00.000Z"
----
+
 
 # Session State
 
@@ -17,7 +17,7 @@ See: .planning/PROJECT.md
 
 **Milestone:** v1.0 milestone
 **Current phase:** P0-1-openapi-contratos
-**Status:** Resuming
+
 
 ## Session Log
 
