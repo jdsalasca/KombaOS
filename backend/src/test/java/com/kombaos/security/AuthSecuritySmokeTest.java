@@ -52,6 +52,23 @@ class AuthSecuritySmokeTest {
     }
 
     @Test
+    void enforcesAuthenticationOnProtectedRoutesAndKeepsHealthPublic() {
+        String baseUrl = "http://localhost:" + port;
+
+        TestRestTemplate anonymous = new TestRestTemplate();
+        assertEquals(HttpStatus.OK,
+                anonymous.getForEntity(baseUrl + "/api/health", String.class).getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED,
+                anonymous.getForEntity(baseUrl + "/api/auth/login", String.class).getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED,
+                anonymous.getForEntity(baseUrl + "/api/materials", String.class).getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED,
+                anonymous.getForEntity(baseUrl + "/api/products", String.class).getStatusCode());
+    }
+
+    @Test
+    void loginAndRoleAuthorizationMatrix() {
+        String baseUrl = "http://localhost:" + port;
     void loginAndRoleAuthorization() {
         String baseUrl = "http://localhost:" + port;
 
@@ -93,6 +110,28 @@ class AuthSecuritySmokeTest {
                 ProductResponse.class
         );
         assertEquals(HttpStatus.CREATED, productResponse.getStatusCode());
+
+        var blockedMaterials = comercial.postForEntity(
+                baseUrl + "/api/materials",
+                new MaterialCreateRequest("Seda", "kg", null, null, null, null, null),
+                MaterialResponse.class
+        );
+        assertEquals(HttpStatus.FORBIDDEN, blockedMaterials.getStatusCode());
+
+        TestRestTemplate admin = new TestRestTemplate("admin", "admin123");
+        var adminCreatesProduct = admin.postForEntity(
+                baseUrl + "/api/products",
+                new ProductCreateRequest("Manta", "Tejido manual", 3200000L, "COP", true),
+                ProductResponse.class
+        );
+        assertEquals(HttpStatus.CREATED, adminCreatesProduct.getStatusCode());
+
+        var adminCreatesMaterial = admin.postForEntity(
+                baseUrl + "/api/materials",
+                new MaterialCreateRequest("Alpaca", "kg", null, null, null, null, null),
+                MaterialResponse.class
+        );
+        assertEquals(HttpStatus.CREATED, adminCreatesMaterial.getStatusCode());
     }
 
     private record AuthLoginResponse(String username, List<String> roles) {

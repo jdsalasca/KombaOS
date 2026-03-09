@@ -62,3 +62,17 @@ Desglose en pasos cortos (GSD):
 - Se creó endpoint de login técnico (`GET /api/auth/login`) que devuelve usuario y roles autenticados.
 - Se aplicó autorización por rol en rutas de inventario/productos para el modo seguro.
 - Se agregaron pruebas smoke de autenticación/autorización en backend.
+
+
+## Enfoque GSD (Get Stuff Done) — frente actual tomado
+
+Frente activo: **P0-08 Estrategia de pruebas completa**.
+
+Objetivo del corte:
+- Endurecer la cobertura smoke de seguridad con matriz de autorización por rol.
+- Verificar explícitamente acceso público de health y bloqueo de endpoints protegidos sin credenciales.
+
+### Avance GSD — corte implementado
+- Se amplió el smoke test de seguridad para validar comportamiento anónimo en rutas públicas/protegidas.
+- Se agregó matriz de autorización para `ADMIN`, `OPERACION` y `COMERCIAL` en `materials` y `products`.
+- Se mantuvo validación automática dentro de `./mvnw test` para asegurar regresión continua.
