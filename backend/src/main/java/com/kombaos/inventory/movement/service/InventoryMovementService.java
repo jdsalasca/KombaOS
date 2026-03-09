@@ -4,6 +4,7 @@ import com.kombaos.inventory.material.service.MaterialService;
 import com.kombaos.inventory.movement.domain.InventoryMovement;
 import com.kombaos.inventory.movement.domain.InventoryMovementType;
 import com.kombaos.inventory.movement.repository.InventoryMovementStore;
+import com.kombaos.inventory.threshold.repository.MaterialStockThresholdStore;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -16,10 +17,16 @@ public class InventoryMovementService {
 
     private final InventoryMovementStore store;
     private final MaterialService materialService;
+    private final MaterialStockThresholdStore thresholdStore;
 
-    public InventoryMovementService(InventoryMovementStore store, MaterialService materialService) {
+    public InventoryMovementService(
+            InventoryMovementStore store,
+            MaterialService materialService,
+            MaterialStockThresholdStore thresholdStore
+    ) {
         this.store = store;
         this.materialService = materialService;
+        this.thresholdStore = thresholdStore;
     }
 
     public List<InventoryMovement> list(Optional<String> materialId) {
@@ -57,6 +64,14 @@ public class InventoryMovementService {
         BigDecimal next = current.add(delta);
         if (next.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Insufficient stock for material: " + materialId);
+        }
+
+        if (type == InventoryMovementType.OUT) {
+            thresholdStore.getByMaterialId(materialId).ifPresent(threshold -> {
+                if (next.compareTo(threshold.minStock()) < 0) {
+                    throw new IllegalArgumentException("Movement would leave stock below minimum threshold for material: " + materialId);
+                }
+            });
         }
 
         return store.create(materialId, type, quantity, reason);
