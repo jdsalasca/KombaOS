@@ -89,6 +89,9 @@ class InventoryMovementsLocalSmokeTest {
                 Map.class
         );
         assertThat(bad.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(bad.getBody()).containsEntry("error", "bad_request");
+        assertThat(bad.getBody()).containsEntry("code", "bad_request");
+        assertThat(bad.getBody()).containsKey("message");
+        assertThat(bad.getBody()).containsKey("details");
+        assertThat(bad.getBody()).containsKey("traceId");
     }
 }

@@ -18,6 +18,83 @@ paths:
                 properties:
                   status:
                     type: string
+  /api/products:
+    get:
+      summary: List products
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /api/products/{id}:
+    get:
+      summary: Get product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Not found
+    put:
+      summary: Update product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+    delete:
+      summary: Delete product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No content
   /api/materials:
     get:
       summary: List materials
@@ -268,6 +345,77 @@ paths:
                   $ref: '#/components/schemas/LowStockAlert'
 components:
   schemas:
+    Product:
+      type: object
+      required: [id, name, description, priceCents, currency, active, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        priceCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 999999999
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    ProductCreateRequest:
+      type: object
+      required: [name, description, priceCents, currency, active]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        priceCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 999999999
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        active:
+          type: boolean
+    ProductUpdateRequest:
+      type: object
+      required: [name, description, priceCents, currency, active]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        priceCents:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 999999999
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        active:
+          type: boolean
     Material:
       type: object
       required: [id, name, unit, certified, createdAt]
@@ -276,13 +424,19 @@ components:
           type: string
         name:
           type: string
+          minLength: 1
+          maxLength: 200
         unit:
           type: string
+          minLength: 1
+          maxLength: 50
         supplier:
           type: string
+          maxLength: 200
           nullable: true
         origin:
           type: string
+          maxLength: 200
           nullable: true
         certified:
           type: boolean
@@ -292,6 +446,7 @@ components:
           nullable: true
         currency:
           type: string
+          pattern: '^[A-Z]{3}$'
           nullable: true
         createdAt:
           type: string
@@ -302,13 +457,19 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
+          maxLength: 200
         unit:
           type: string
+          minLength: 1
+          maxLength: 50
         supplier:
           type: string
+          maxLength: 200
           nullable: true
         origin:
           type: string
+          maxLength: 200
           nullable: true
         certified:
           type: boolean
@@ -316,9 +477,11 @@ components:
         costCents:
           type: integer
           format: int64
+          minimum: 0
           nullable: true
         currency:
           type: string
+          pattern: '^[A-Z]{3}$'
           nullable: true
     MaterialStock:
       type: object
@@ -376,6 +539,7 @@ components:
           type: number
         reason:
           type: string
+          maxLength: 200
         createdAt:
           type: string
           format: date-time
