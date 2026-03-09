@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -74,6 +78,49 @@ class InventoryMovementsLocalSmokeTest {
     }
 
     @Test
+    void concurrentAdjustmentsKeepConsistentFinalStock() throws Exception {
+        ResponseEntity<MaterialResponse> createdMaterial = restTemplate.postForEntity(
+                "/api/materials",
+                new MaterialCreateRequest("Seda", "kg", null, null, null, null, null),
+                MaterialResponse.class
+        );
+        assertThat(createdMaterial.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String materialId = createdMaterial.getBody().id();
+
+        int operations = 20;
+        ExecutorService pool = Executors.newFixedThreadPool(8);
+        try {
+            CompletableFuture<?>[] tasks = new CompletableFuture<?>[operations];
+            for (int i = 0; i < operations; i++) {
+                tasks[i] = CompletableFuture.runAsync(() -> {
+                    ResponseEntity<InventoryMovementResponse> response = restTemplate.postForEntity(
+                            "/api/inventory/movements",
+                            new InventoryMovementCreateRequest(
+                                    materialId,
+                                    InventoryMovementType.ADJUST,
+                                    new java.math.BigDecimal("1"),
+                                    "Concurrent adjustment"
+                            ),
+                            InventoryMovementResponse.class
+                    );
+                    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+                }, pool);
+            }
+            CompletableFuture.allOf(tasks).join();
+        } finally {
+            pool.shutdown();
+            pool.awaitTermination(10, TimeUnit.SECONDS);
+        }
+
+        ResponseEntity<MaterialStockResponse> stock = restTemplate.getForEntity(
+                "/api/materials/" + materialId + "/stock",
+                MaterialStockResponse.class
+        );
+        assertThat(stock.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(stock.getBody().stock()).isEqualByComparingTo("20");
+    }
+
+    @Test
     void outWithInsufficientStockReturnsBadRequest() {
         ResponseEntity<MaterialResponse> createdMaterial = restTemplate.postForEntity(
                 "/api/materials",
@@ -89,6 +136,9 @@ class InventoryMovementsLocalSmokeTest {
                 Map.class
         );
         assertThat(bad.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(bad.getBody()).containsEntry("error", "bad_request");
+        assertThat(bad.getBody()).containsEntry("code", "bad_request");
+        assertThat(bad.getBody()).containsKey("message");
+        assertThat(bad.getBody()).containsKey("details");
+        assertThat(bad.getBody()).containsKey("traceId");
     }
 }
