@@ -16,6 +16,7 @@ Convenciones:
 | P0-01 | Autenticación + roles | P0 | En progreso | Login, RBAC, auditoría mínima |
 | P0-02 | Inventario base | P0 | Hecho | Materiales, movimientos, stock y alertas |
 | P0-03 | Producción base | P0 | En progreso | Órdenes, etapas, tiempos, consumos |
+| P0-03 | Producción base | P0 | Pendiente | Órdenes, etapas, tiempos, consumos |
 | P0-04 | Trazabilidad mínima | P0 | Pendiente | Insumo→lote→producto→orden (ficha) |
 | P0-05 | Catálogo + backoffice | P0 | Hecho (MVP) | CRUD productos/colecciones + publicación |
 | P0-06 | Web cliente (catálogo + orden) | P0 | Pendiente | Navegación + carrito/orden (sin IA) |
@@ -76,17 +77,3 @@ Objetivo del corte:
 - Se amplió el smoke test de seguridad para validar comportamiento anónimo en rutas públicas/protegidas.
 - Se agregó matriz de autorización para `ADMIN`, `OPERACION` y `COMERCIAL` en `materials` y `products`.
 - Se mantuvo validación automática dentro de `./mvnw test` para asegurar regresión continua.
-
-
-## Enfoque GSD (Get Stuff Done) — frente actual tomado
-
-Frente activo: **P0-03 Producción base**.
-
-Objetivo del corte:
-- Entregar una base mínima de órdenes de producción para operar planificación inicial.
-- Dejar cobertura smoke para flujo crear/listar/actualizar estado.
-
-### Avance GSD — corte implementado
-- Se implementó API base de órdenes de producción (`/api/production/orders`) con creación, consulta y actualización de estado.
-- Se añadió persistencia local por archivo y persistencia JPA para modo cloud.
-- Se agregó migración SQL para tabla `production_orders` y smoke test backend del flujo principal.
