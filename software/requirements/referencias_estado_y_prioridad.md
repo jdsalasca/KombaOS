@@ -15,6 +15,7 @@ Convenciones:
 |---:|---|:---:|:---:|---|
 | P0-01 | Autenticación + roles | P0 | En progreso | Login, RBAC, auditoría mínima |
 | P0-02 | Inventario base | P0 | Hecho | Materiales, movimientos, stock y alertas |
+| P0-03 | Producción base | P0 | En progreso | Órdenes, etapas, tiempos, consumos |
 | P0-03 | Producción base | P0 | Pendiente | Órdenes, etapas, tiempos, consumos |
 | P0-04 | Trazabilidad mínima | P0 | Pendiente | Insumo→lote→producto→orden (ficha) |
 | P0-05 | Catálogo + backoffice | P0 | Hecho (MVP) | CRUD productos/colecciones + publicación |

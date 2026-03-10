@@ -8,6 +8,7 @@ import com.kombaos.catalog.product.dto.ProductCreateRequest;
 import com.kombaos.catalog.product.dto.ProductResponse;
 import com.kombaos.inventory.material.dto.MaterialCreateRequest;
 import com.kombaos.inventory.material.dto.MaterialResponse;
+import com.kombaos.production.order.dto.ProductionOrderCreateRequest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,6 +65,8 @@ class AuthSecuritySmokeTest {
                 anonymous.getForEntity(baseUrl + "/api/materials", String.class).getStatusCode());
         assertEquals(HttpStatus.UNAUTHORIZED,
                 anonymous.getForEntity(baseUrl + "/api/products", String.class).getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED,
+                anonymous.getForEntity(baseUrl + "/api/production/orders", String.class).getStatusCode());
     }
 
     @Test
@@ -96,6 +99,12 @@ class AuthSecuritySmokeTest {
         );
         assertEquals(HttpStatus.CREATED, materialResponse.getStatusCode());
 
+        var productionOrderByOper = operacion.postForEntity(
+                baseUrl + "/api/production/orders",
+                new ProductionOrderCreateRequest("prod-1", new java.math.BigDecimal("5.0"), null),
+                String.class
+        );
+        assertEquals(HttpStatus.CREATED, productionOrderByOper.getStatusCode());
         var blockedProducts = operacion.postForEntity(
                 baseUrl + "/api/products",
                 new ProductCreateRequest("Poncho", "Tradicional", 1200000L, "COP", true),
@@ -110,6 +119,13 @@ class AuthSecuritySmokeTest {
                 ProductResponse.class
         );
         assertEquals(HttpStatus.CREATED, productResponse.getStatusCode());
+
+        var blockedProduction = comercial.postForEntity(
+                baseUrl + "/api/production/orders",
+                new ProductionOrderCreateRequest("prod-2", new java.math.BigDecimal("3.0"), null),
+                String.class
+        );
+        assertEquals(HttpStatus.FORBIDDEN, blockedProduction.getStatusCode());
 
         var blockedMaterials = comercial.postForEntity(
                 baseUrl + "/api/materials",
