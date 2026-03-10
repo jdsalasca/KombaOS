@@ -26,10 +26,11 @@ public class SecurityConfig {
         }
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/health", "/actuator/health").permitAll()
+                .requestMatchers("/api/health", "/actuator/health", "/api/public/**").permitAll()
                 .requestMatchers("/api/auth/login").authenticated()
-                .requestMatchers("/api/materials/**", "/api/inventory/**").hasAnyRole("ADMIN", "OPERACION")
-                .requestMatchers("/api/products/**").hasAnyRole("ADMIN", "COMERCIAL")
+                .requestMatchers("/api/materials/**", "/api/inventory/**", "/api/production/**").hasAnyRole("ADMIN", "OPERACION")
+                .requestMatchers("/api/products/**", "/api/sales/**").hasAnyRole("ADMIN", "COMERCIAL")
+                .requestMatchers("/api/traceability/**").hasAnyRole("ADMIN", "OPERACION", "COMERCIAL")
                 .requestMatchers("/api/**").hasRole("ADMIN")
                 .anyRequest().permitAll());
 
