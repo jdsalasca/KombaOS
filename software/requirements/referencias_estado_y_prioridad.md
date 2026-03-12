@@ -20,6 +20,8 @@ Convenciones:
 | P0-05 | Catálogo + backoffice | P0 | Hecho (MVP) | CRUD productos/colecciones + publicación |
 | P0-06 | Web cliente (catálogo + orden) | P0 | Pendiente | Navegación + carrito/orden (sin IA) |
 | P0-07 | Postventa (encuestas) | P0 | Pendiente | Plantillas + disparadores + respuestas |
+| P0-06 | Web cliente (catálogo + orden) | P0 | En progreso | Navegación + carrito/orden (sin IA) |
+| P0-07 | Postventa (encuestas) | P0 | En progreso | Plantillas + disparadores + respuestas |
 | P0-08 | Estrategia de pruebas completa | P0 | En progreso | Regresión + E2E para backend y frontend |
 | P0-09 | Dockerización backend | P0 | Hecho (MVP) | Dockerfile + variables + health endpoint |
 | P0-10 | Empaquetado para cliente (Windows) | P0 | Pendiente | Generación de EXE instalable/portable |
@@ -104,3 +106,33 @@ Objetivo del corte:
 - Se agregó endpoint `GET /api/traceability/production-orders/{orderId}` para exponer ficha consolidada (orden, producto y materiales).
 - Se ajustó RBAC para rutas de trazabilidad con acceso de `ADMIN`, `OPERACION` y `COMERCIAL`.
 - Se incorporó smoke test local que crea datos base y valida la ficha de trazabilidad.
+
+
+## Enfoque GSD (Get Stuff Done) — frente actual tomado
+
+Frente activo: **P0-06 Web cliente (catálogo + orden)**.
+
+Objetivo del corte:
+- Habilitar orden pública mínima para cliente sin autenticación.
+- Proveer gestión de estado para backoffice comercial.
+
+### Avance GSD — corte implementado
+- Se agregó API pública de órdenes de venta (`POST/GET /api/public/orders`).
+- Se agregó API backoffice comercial (`GET /api/sales/orders`, `PUT /api/sales/orders/{id}/status`).
+- Se implementó persistencia local/JPA y migración SQL para `sales_orders`.
+- Se reforzó smoke de seguridad para validar acceso público y permisos de `COMERCIAL` sobre ventas.
+
+
+## Enfoque GSD (Get Stuff Done) — frente actual tomado
+
+Frente activo: **P0-07 Postventa (encuestas)**.
+
+Objetivo del corte:
+- Habilitar plantillas de encuesta y recepción de respuestas públicas.
+- Permitir consulta backoffice comercial de resultados.
+
+### Avance GSD — corte implementado
+- Se agregó API de plantillas de encuesta (`GET/POST /api/surveys/templates`).
+- Se agregó API pública para respuestas (`POST /api/public/surveys/responses`).
+- Se agregó API de backoffice para respuestas (`GET /api/surveys/responses`).
+- Se añadió persistencia local/JPA + migración SQL para `survey_templates` y `survey_responses`.
