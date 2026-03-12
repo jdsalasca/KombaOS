@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/health", "/actuator/health", "/api/public/**").permitAll()
                 .requestMatchers("/api/auth/login").authenticated()
                 .requestMatchers("/api/materials/**", "/api/inventory/**", "/api/production/**").hasAnyRole("ADMIN", "OPERACION")
-                .requestMatchers("/api/products/**", "/api/sales/**").hasAnyRole("ADMIN", "COMERCIAL")
+                .requestMatchers("/api/products/**", "/api/sales/**", "/api/surveys/**").hasAnyRole("ADMIN", "COMERCIAL")
                 .requestMatchers("/api/traceability/**").hasAnyRole("ADMIN", "OPERACION", "COMERCIAL")
                 .requestMatchers("/api/**").hasRole("ADMIN")
                 .anyRequest().permitAll());

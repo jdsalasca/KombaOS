@@ -10,6 +10,8 @@ import com.kombaos.inventory.material.dto.MaterialCreateRequest;
 import com.kombaos.inventory.material.dto.MaterialResponse;
 import com.kombaos.production.order.dto.ProductionOrderCreateRequest;
 import com.kombaos.sales.order.dto.SalesOrderCreateRequest;
+import com.kombaos.postsales.survey.dto.SurveyTemplateCreateRequest;
+import com.kombaos.postsales.survey.dto.SurveyResponseCreateRequest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,6 +70,8 @@ class AuthSecuritySmokeTest {
                 anonymous.getForEntity(baseUrl + "/api/products", String.class).getStatusCode());
         assertEquals(HttpStatus.UNAUTHORIZED,
                 anonymous.getForEntity(baseUrl + "/api/production/orders", String.class).getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED,
+                anonymous.getForEntity(baseUrl + "/api/surveys/templates", String.class).getStatusCode());
         var anonymousPublicOrder = anonymous.postForEntity(
                 baseUrl + "/api/public/orders",
                 new SalesOrderCreateRequest("Anon", "anon@example.com", "missing", new java.math.BigDecimal("1.0")),
@@ -80,6 +84,7 @@ class AuthSecuritySmokeTest {
     void loginAndRoleAuthorizationMatrix() {
         String baseUrl = "http://localhost:" + port;
 
+        TestRestTemplate anonymous = new TestRestTemplate();
         TestRestTemplate operacion = new TestRestTemplate("operacion", "operacion123");
         ResponseEntity<AuthLoginResponse> loginResponse = operacion.exchange(
                 baseUrl + "/api/auth/login",
@@ -116,6 +121,9 @@ class AuthSecuritySmokeTest {
         var blockedSalesByOper = operacion.getForEntity(baseUrl + "/api/sales/orders", String.class);
         assertEquals(HttpStatus.FORBIDDEN, blockedSalesByOper.getStatusCode());
 
+        var blockedSurveyByOper = operacion.getForEntity(baseUrl + "/api/surveys/templates", String.class);
+        assertEquals(HttpStatus.FORBIDDEN, blockedSurveyByOper.getStatusCode());
+
         TestRestTemplate comercial = new TestRestTemplate("comercial", "comercial123");
         var productResponse = comercial.postForEntity(
                 baseUrl + "/api/products",
@@ -126,6 +134,20 @@ class AuthSecuritySmokeTest {
 
         var salesListByComercial = comercial.getForEntity(baseUrl + "/api/sales/orders", String.class);
         assertEquals(HttpStatus.OK, salesListByComercial.getStatusCode());
+
+        var createdTemplateByComercial = comercial.postForEntity(
+                baseUrl + "/api/surveys/templates",
+                new SurveyTemplateCreateRequest("NPS", "¿Nos recomienda?", true),
+                String.class
+        );
+        assertEquals(HttpStatus.CREATED, createdTemplateByComercial.getStatusCode());
+
+        var anonymousSurveyResponse = anonymous.postForEntity(
+                baseUrl + "/api/public/surveys/responses",
+                new SurveyResponseCreateRequest("missing-template", "anon@example.com", 4, "ok"),
+                String.class
+        );
+        assertEquals(HttpStatus.NOT_FOUND, anonymousSurveyResponse.getStatusCode());
 
         var blockedProduction = comercial.postForEntity(
                 baseUrl + "/api/production/orders",
