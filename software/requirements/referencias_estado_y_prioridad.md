@@ -18,6 +18,8 @@ Convenciones:
 | P0-03 | Producción base | P0 | En progreso | Órdenes, etapas, tiempos, consumos |
 | P0-04 | Trazabilidad mínima | P0 | En progreso | Insumo→lote→producto→orden (ficha) |
 | P0-05 | Catálogo + backoffice | P0 | Hecho (MVP) | CRUD productos/colecciones + publicación |
+| P0-06 | Web cliente (catálogo + orden) | P0 | Pendiente | Navegación + carrito/orden (sin IA) |
+| P0-07 | Postventa (encuestas) | P0 | Pendiente | Plantillas + disparadores + respuestas |
 | P0-06 | Web cliente (catálogo + orden) | P0 | En progreso | Navegación + carrito/orden (sin IA) |
 | P0-07 | Postventa (encuestas) | P0 | En progreso | Plantillas + disparadores + respuestas |
 | P0-08 | Estrategia de pruebas completa | P0 | En progreso | Regresión + E2E para backend y frontend |
